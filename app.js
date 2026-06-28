@@ -47,7 +47,7 @@ const TIMELINE_KEYWORDS = {
   "souvenirs apres son depart": ["souvenir", "anniversaire", "bougie", "laisse"],
 };
 
-const BASE_URL = "https://rubenzerbib.github.io/papa-2.0/";
+const BASE_URL = `${window.location.origin}${window.location.pathname.replace(/index\.html$/, "")}`;
 
 const demoPosts = [
   {
@@ -268,6 +268,7 @@ function init() {
     renderAll();
     renderSampleRemembrance();
     drawQrPlaceholder();
+    handleHashNavigation();
   }, 350);
 }
 
@@ -288,6 +289,7 @@ function cacheElements() {
   els.generatePage = document.getElementById("generate-page");
   els.generatedPage = document.getElementById("generated-page");
   els.memoryDay = document.getElementById("memory-day");
+  els.quickStats = document.getElementById("quick-stats");
   els.placesGrid = document.getElementById("places-grid");
   els.modal = document.getElementById("composer-modal");
   els.closeComposer = document.getElementById("close-composer");
@@ -367,6 +369,19 @@ function bindEvents() {
   els.importJson.addEventListener("change", importPostsJson);
   els.resetDemo.addEventListener("click", resetDemoData);
   els.printPage.addEventListener("click", () => window.print());
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "/" && document.activeElement !== els.searchInput) {
+      e.preventDefault();
+      els.searchInput.focus();
+    }
+    if (e.key.toLowerCase() === "n" && !els.modal.open) {
+      openComposer();
+    }
+    if (e.key === "Escape" && els.modal.open) {
+      els.modal.close();
+    }
+  });
 }
 
 function initData() {
@@ -387,10 +402,36 @@ function initData() {
 
 function renderAll() {
   renderMemoryDay();
+  renderQuickStats();
   renderFeed();
   renderTimeline();
   renderBook();
   renderPlaces();
+}
+
+function renderQuickStats() {
+  const locations = new Set(state.posts.map((p) => (p.location || "").trim()).filter(Boolean));
+  const contributors = new Set(state.posts.map((p) => (p.contributor || "Famille").trim()));
+  const totalComments = state.posts.reduce((acc, p) => acc + (p.comments?.length || 0), 0);
+
+  els.quickStats.innerHTML = `
+    <article>
+      <h4>${state.posts.length}</h4>
+      <p>souvenirs deposes</p>
+    </article>
+    <article>
+      <h4>${contributors.size}</h4>
+      <p>voix de la famille</p>
+    </article>
+    <article>
+      <h4>${locations.size}</h4>
+      <p>lieux partages</p>
+    </article>
+    <article>
+      <h4>${totalComments}</h4>
+      <p>messages de soutien</p>
+    </article>
+  `;
 }
 
 function renderStories() {
@@ -871,7 +912,9 @@ function setView(view) {
   state.activeView = view;
 
   document.querySelectorAll("[data-view-panel]").forEach((panel) => {
-    panel.hidden = panel.dataset.viewPanel !== view;
+    const active = panel.dataset.viewPanel === view;
+    panel.hidden = !active;
+    panel.classList.toggle("panel-active", active);
   });
 
   document.querySelectorAll(".nav-item[data-view]").forEach((item) => {
@@ -881,6 +924,18 @@ function setView(view) {
   document.querySelectorAll(".bottom-nav-item[data-view]").forEach((item) => {
     item.classList.toggle("active", item.dataset.view === view);
   });
+}
+
+function handleHashNavigation() {
+  if (!window.location.hash.startsWith("#post-")) return;
+  const target = document.querySelector(window.location.hash);
+  if (!target) return;
+  if (els.app.hidden) {
+    els.landing.hidden = true;
+    els.app.hidden = false;
+  }
+  setView("feed");
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function getFilteredPosts() {
