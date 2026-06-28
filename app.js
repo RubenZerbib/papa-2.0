@@ -150,7 +150,7 @@ function cacheEls() {
     "hero-photo", "hero-photo-fallback", "hero-name", "hero-dates", "hero-summary", "hero-welcome", "top-title", "app-title-click",
     "search-input", "sort-select", "filter-chips", "clear-filters", "stories-list", "timeline-range", "timeline-periods", "timeline-focus",
     "timeline-filter-btn", "movement-carousel", "feed", "memory-day", "quick-stats", "book-chapters", "generate-page", "generated-page",
-    "qr-canvas", "qr-url", "composer-modal", "composer-form", "composer-file", "composer-preview", "close-composer", "fab-add", "bottom-add",
+    "qr-canvas", "qr-url", "composer-modal", "composer-form", "composer-file", "composer-preview", "close-composer", "memory-modal", "close-memory-modal", "memory-modal-content", "fab-add", "bottom-add",
     "admin-dot", "bottom-admin", "admin-login-modal", "admin-login-form", "close-admin-login", "admin-login-error", "admin-panel-modal",
     "close-admin-panel", "admin-hero-photo", "admin-name", "admin-dates", "admin-summary", "admin-welcome", "admin-music-path", "admin-accent",
     "admin-music-file", "admin-music-enabled", "admin-music-volume", "admin-play-music", "admin-stop-music",
@@ -257,6 +257,7 @@ function bindEvents() {
   els["fab-add"].addEventListener("click", openComposer);
   els["bottom-add"].addEventListener("click", openComposer);
   els["close-composer"].addEventListener("click", () => els["composer-modal"].close());
+  els["close-memory-modal"].addEventListener("click", () => els["memory-modal"].close());
   els["composer-file"].addEventListener("change", previewComposer);
   els["composer-form"].addEventListener("submit", submitComposer);
 
@@ -614,6 +615,7 @@ function renderPost(post) {
         </div>
 
         <div class="actions-row">
+          <button class="post-action" data-open-memory="${post.id}">${state.config.locale === "he" ? "פתח" : "Ouvrir"}</button>
           <button class="post-action" data-share="${post.id}">Partager</button>
           <button class="post-action" data-save="${post.id}">${saved ? "Enregistre" : "Enregistrer"}</button>
         </div>
@@ -644,7 +646,15 @@ function mediaMarkup(media) {
 }
 
 function bindPostEvents(post) {
-  document.querySelectorAll(`[data-react-post="${post.id}"]`).forEach((btn) => {
+  const card = document.getElementById(`post-${post.id}`);
+  if (!card) return;
+
+  const open = card.querySelector(`[data-open-memory="${post.id}"]`);
+  open?.addEventListener("click", () => {
+    openMemoryModal(post.id);
+  });
+
+  card.querySelectorAll(`[data-react-post="${post.id}"]`).forEach((btn) => {
     btn.addEventListener("click", () => {
       const key = btn.dataset.r;
       post.reactions[key] = (post.reactions[key] || 0) + 1;
@@ -656,7 +666,7 @@ function bindPostEvents(post) {
     });
   });
 
-  const share = document.querySelector(`[data-share="${post.id}"]`);
+  const share = card.querySelector(`[data-share="${post.id}"]`);
   share?.addEventListener("click", async () => {
     const url = `${window.location.href.split("#")[0]}#post-${post.id}`;
     try {
@@ -668,7 +678,7 @@ function bindPostEvents(post) {
     }
   });
 
-  const save = document.querySelector(`[data-save="${post.id}"]`);
+  const save = card.querySelector(`[data-save="${post.id}"]`);
   save?.addEventListener("click", () => {
     if (state.saved.has(post.id)) state.saved.delete(post.id);
     else state.saved.add(post.id);
@@ -676,7 +686,7 @@ function bindPostEvents(post) {
     renderFeed();
   });
 
-  const form = document.querySelector(`[data-comment-form="${post.id}"]`);
+  const form = card.querySelector(`[data-comment-form="${post.id}"]`);
   form?.addEventListener("submit", (e) => {
     e.preventDefault();
     const fd = new FormData(form);
@@ -688,6 +698,127 @@ function bindPostEvents(post) {
     renderFeed();
     renderQuickStats();
     if (state.admin.unlocked) renderAdminComments();
+  });
+}
+
+function openMemoryModal(postId) {
+  const post = state.posts.find((p) => p.id === postId);
+  if (!post) return;
+
+  const media = post.media[0] || { type: "text", title: "Souvenir", url: "", placeholder: true };
+  const comments = post.comments || [];
+  const likeLabel = state.config.locale === "he" ? "לייק" : "Liker";
+  const commentPlaceholder = state.config.locale === "he" ? "כתבו תגובה..." : "Ecrire un commentaire...";
+  const publishLabel = state.config.locale === "he" ? "פרסום" : "Publier";
+  const namePlaceholder = state.config.locale === "he" ? "שם פרטי (אופציונלי)" : "Prenom (optionnel)";
+  const contributorFallback = state.config.locale === "he" ? "משפחה" : "Famille";
+
+  els["memory-modal"].dataset.postId = post.id;
+  els["memory-modal-content"].innerHTML = `
+    <article class="memory-detail">
+      <header class="post-head">
+        <div class="author">
+          <span class="avatar">${escapeHtml((post.contributor || "F").slice(0, 1).toUpperCase())}</span>
+          <div>
+            <strong>${escapeHtml(post.contributor || contributorFallback)}</strong>
+            <p>${escapeHtml(post.dateLabel)}${post.location ? ` • ${escapeHtml(post.location)}` : ""}</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="post-media ${escapeAttr(media.type)}">${mediaMarkup(media)}</div>
+
+      <div class="post-body">
+        <p class="caption">${escapeHtml(post.caption)}</p>
+        <div class="tags">${post.tags.map((tag) => `<span>#${escapeHtml(tag)}</span>`).join("")}</div>
+
+        <div class="actions-row">
+          <button class="post-action" data-modal-like="${post.id}">❤️ ${likeLabel}</button>
+          <button class="post-action" data-share="${post.id}">Partager</button>
+        </div>
+
+        <div class="reactions-row">
+          ${REACTIONS.map((r) => `<button class="reaction-btn" data-modal-react="${post.id}" data-r="${r}">${r} <span>${post.reactions[r] || 0}</span></button>`).join("")}
+        </div>
+
+        <div class="comments">
+          ${comments.map((c) => `<p><strong>${escapeHtml(c.name)}</strong> ${escapeHtml(c.text)}</p>`).join("")}
+          <form class="comment-form" data-modal-comment-form="${post.id}">
+            <input name="name" type="text" placeholder="${escapeAttr(namePlaceholder)}" maxlength="24" />
+            <input name="comment" type="text" required placeholder="${escapeAttr(commentPlaceholder)}" />
+            <button class="btn btn-soft btn-sm" type="submit">${escapeHtml(publishLabel)}</button>
+          </form>
+          <div class="emoji-picker" data-emoji-for="${post.id}">
+            ${REACTIONS.map((emoji) => `<button class="emoji-btn" type="button" data-add-emoji="${post.id}" data-emoji="${emoji}">${emoji}</button>`).join("")}
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+
+  bindMemoryModalEvents(post);
+  if (!els["memory-modal"].open) els["memory-modal"].showModal();
+}
+
+function bindMemoryModalEvents(post) {
+  const like = els["memory-modal-content"].querySelector(`[data-modal-like="${post.id}"]`);
+  like?.addEventListener("click", () => {
+    post.reactions["❤️"] = (post.reactions["❤️"] || 0) + 1;
+    persistPosts();
+    renderFeed();
+    renderQuickStats();
+    openMemoryModal(post.id);
+    if (state.admin.unlocked) renderAdminPosts();
+  });
+
+  els["memory-modal-content"].querySelectorAll(`[data-modal-react="${post.id}"]`).forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.r;
+      post.reactions[key] = (post.reactions[key] || 0) + 1;
+      persistPosts();
+      renderFeed();
+      renderQuickStats();
+      openMemoryModal(post.id);
+      if (state.admin.unlocked) renderAdminPosts();
+    });
+  });
+
+  const form = els["memory-modal-content"].querySelector(`[data-modal-comment-form="${post.id}"]`);
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const text = String(fd.get("comment") || "").trim();
+    if (!text) return;
+    const name = String(fd.get("name") || "").trim() || (state.config.locale === "he" ? "משפחה" : "Famille");
+    post.comments.push({ id: uid("c"), name, text, createdAt: Date.now() });
+    persistPosts();
+    renderFeed();
+    renderQuickStats();
+    openMemoryModal(post.id);
+    if (state.admin.unlocked) renderAdminComments();
+  });
+
+  els["memory-modal-content"].querySelectorAll(`[data-add-emoji="${post.id}"]`).forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = form?.querySelector('input[name="comment"]');
+      if (!input) return;
+      input.value = `${input.value}${btn.dataset.emoji || ""}`;
+      input.focus();
+    });
+  });
+
+  const share = els["memory-modal-content"].querySelector(`[data-share="${post.id}"]`);
+  share?.addEventListener("click", async () => {
+    const url = `${window.location.href.split("#")[0]}#post-${post.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      share.textContent = state.config.locale === "he" ? "הועתק" : "Lien copie";
+      setTimeout(() => {
+        share.textContent = "Partager";
+      }, 1200);
+    } catch {
+      window.prompt(state.config.locale === "he" ? "העתיקו את הקישור:" : "Copiez ce lien:", url);
+    }
   });
 }
 
