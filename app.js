@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
 };
 
 const ADMIN_PASSWORD = "Rubenz0306";
+const MAX_MUSIC_UPLOAD_BYTES = 1200000;
 
 const REACTIONS = ["❤️", "🕯️", "🙏", "🤍", "😂", "😢"];
 const STORIES = ["Famille", "Enfance", "Fetes", "Voyages", "Voix", "Videos", "Heritage", "Drole"];
@@ -1020,6 +1021,8 @@ function fillAdminFields() {
 }
 
 async function saveAdminConfig() {
+  const previousConfig = { ...state.config };
+
   state.config.name = els["admin-name"].value.trim() || "Papa";
   state.config.dates = els["admin-dates"].value.trim();
   state.config.summary = els["admin-summary"].value.trim();
@@ -1035,11 +1038,28 @@ async function saveAdminConfig() {
 
   const musicFile = els["admin-music-file"].files?.[0];
   if (musicFile) {
-    const dataUrl = await fileToDataUrl(musicFile, 7000000);
-    if (dataUrl) state.config.musicData = dataUrl;
+    const dataUrl = await fileToDataUrl(musicFile, MAX_MUSIC_UPLOAD_BYTES);
+    if (!dataUrl) {
+      const maxMb = (MAX_MUSIC_UPLOAD_BYTES / 1000000).toFixed(1);
+      const msg = state.config.locale === "he"
+        ? `קובץ המוזיקה גדול מדי. נא לבחור קובץ קטן מ-${maxMb}MB.`
+        : `Le fichier musique est trop lourd. Choisissez un fichier inferieur a ${maxMb} MB.`;
+      window.alert(msg);
+      return;
+    }
+    state.config.musicData = dataUrl;
   }
 
-  persistConfig();
+  const persisted = persistConfig();
+  if (!persisted) {
+    state.config = previousConfig;
+    const msg = state.config.locale === "he"
+      ? "Impossible de sauvegarder la musique sur cet appareil. Essayez un fichier plus petit."
+      : "Impossible de sauvegarder la musique sur cet appareil. Essayez un fichier plus petit.";
+    window.alert(msg);
+    return;
+  }
+
   applyConfigToUI();
   initAudio();
   if (state.config.musicEnabled) {
@@ -1316,7 +1336,12 @@ function persistPosts() {
 }
 
 function persistConfig() {
-  localStorage.setItem(STORAGE_KEYS.config, JSON.stringify(state.config));
+  try {
+    localStorage.setItem(STORAGE_KEYS.config, JSON.stringify(state.config));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function persistFilters() {
