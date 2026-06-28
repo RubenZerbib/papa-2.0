@@ -312,11 +312,25 @@ function bindEvents() {
   });
 
   document.addEventListener("keydown", (e) => {
+    const active = document.activeElement;
+    const isTypingContext = Boolean(
+      active && (
+        active.tagName === "INPUT"
+        || active.tagName === "TEXTAREA"
+        || active.tagName === "SELECT"
+        || active.isContentEditable
+      )
+    );
+
     if (e.key === "/" && document.activeElement !== els["search-input"]) {
+      if (isTypingContext) return;
       e.preventDefault();
       els["search-input"].focus();
     }
-    if (e.key.toLowerCase() === "n") openComposer();
+    if (e.key.toLowerCase() === "n") {
+      if (isTypingContext) return;
+      openComposer();
+    }
   });
 
   window.addEventListener("resize", updateStickyOffsets);
