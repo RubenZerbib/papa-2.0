@@ -327,10 +327,6 @@ function bindEvents() {
       e.preventDefault();
       els["search-input"].focus();
     }
-    if (e.key.toLowerCase() === "n") {
-      if (isTypingContext) return;
-      openComposer();
-    }
   });
 
   window.addEventListener("resize", updateStickyOffsets);
