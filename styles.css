@@ -13,6 +13,7 @@
   --radius-lg: 18px;
   --radius-md: 12px;
   --shadow: 0 18px 50px rgba(18, 35, 55, 0.13);
+  --topbar-offset: 6.8rem;
 }
 
 body.dark {
@@ -1009,9 +1010,9 @@ body.rtl .nav-link {
     display: grid;
     gap: 0.4rem;
     position: sticky;
-    top: 6rem;
+    top: var(--topbar-offset);
     align-self: start;
-    max-height: calc(100dvh - 6.6rem);
+    max-height: calc(100dvh - var(--topbar-offset) - 0.6rem);
     overflow-y: auto;
     border-radius: var(--radius-lg);
     padding: 0.5rem;

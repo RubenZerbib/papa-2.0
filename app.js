@@ -129,6 +129,7 @@ function init() {
   applyConfigToUI();
   initAudio();
   bindEvents();
+  updateStickyOffsets();
   showSkeletons();
 
   setTimeout(() => {
@@ -139,6 +140,7 @@ function init() {
     renderMovement();
     drawQrPlaceholder();
     jumpFromHash();
+    updateStickyOffsets();
   }, 220);
 }
 
@@ -183,7 +185,10 @@ function hydrateState() {
 }
 
 function bindEvents() {
-  els["enter-btn"].addEventListener("click", enterApp);
+  els["enter-btn"].addEventListener("click", () => {
+    enterApp();
+    requestAnimationFrame(() => scrollToSection("#feed-anchor"));
+  });
   els["open-composer-from-landing"].addEventListener("click", () => {
     enterApp();
     openComposer();
@@ -313,11 +318,14 @@ function bindEvents() {
     }
     if (e.key.toLowerCase() === "n") openComposer();
   });
+
+  window.addEventListener("resize", updateStickyOffsets);
 }
 
 function enterApp() {
   els.landing.hidden = true;
   els.app.hidden = false;
+  updateStickyOffsets();
   tryStartMusic();
 }
 
@@ -327,7 +335,7 @@ function applyConfigToUI() {
   els["hero-dates"].textContent = c.dates;
   els["hero-summary"].textContent = c.summary;
   els["hero-welcome"].textContent = c.welcome;
-  els["qr-url"].textContent = c.qrUrl;
+  if (els["qr-url"]) els["qr-url"].textContent = c.qrUrl;
   els["top-title"].textContent = state.config.locale === "he" ? "מה שהוא השאיר חי בכל אחד מאיתנו." : "Ce qu'il nous a laisse vit encore dans chacun de nous.";
 
   document.documentElement.style.setProperty("--accent", c.accentColor);
@@ -869,7 +877,7 @@ async function submitComposer(e) {
     reactions: Object.fromEntries(REACTIONS.map((r) => [r, 0])),
     comments: [],
     pinned: false,
-    moderated: false,
+    moderated: true,
   };
 
   state.posts.unshift(post);
@@ -1214,6 +1222,7 @@ function resetDemo() {
 
 function drawQrPlaceholder() {
   const canvas = els["qr-canvas"];
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const size = 11;
   const url = state.config.qrUrl || DEFAULT_CONFIG.qrUrl;
@@ -1234,6 +1243,13 @@ function drawQrPlaceholder() {
   drawFinder(ctx, 7, 7, size);
   drawFinder(ctx, 7 + 10 * size, 7, size);
   drawFinder(ctx, 7, 7 + 10 * size, size);
+}
+
+function updateStickyOffsets() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar) return;
+  const offset = Math.ceil(topbar.getBoundingClientRect().height + 16);
+  document.documentElement.style.setProperty("--topbar-offset", `${offset}px`);
 }
 
 function drawFinder(ctx, x, y, s) {
