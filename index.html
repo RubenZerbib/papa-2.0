@@ -1,234 +1,244 @@
 <!doctype html>
 <html lang="fr">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="description" content="Papa 2.0 - Mur collectif de souvenirs." />
-		<title>Papa 2.0</title>
-		<link rel="stylesheet" href="styles.css" />
-	</head>
-	<body>
-		<div id="ambient-bg" aria-hidden="true"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Papa 2.0 - Mur mémorial familial" />
+    <title>Papa 2.0</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="ambient-bg" aria-hidden="true"></div>
 
-		<section id="landing" class="landing active" aria-label="Page d'accueil">
-			<div class="landing__glass">
-				<div class="portrait-placeholder" aria-hidden="true">Papa</div>
-				<h1>Papa</h1>
-				<p class="dates">1956 - 2023</p>
-				<p class="landing__subtext">Un mur commun, construit par ceux qui l'aiment.</p>
-				<p class="landing__quote">Un souvenir n'a pas besoin d'etre parfait pour etre precieux.</p>
-				<div class="landing__actions">
-					<button id="enter-btn" class="btn btn-primary">Entrer dans ses souvenirs</button>
-					<button id="open-composer-from-landing" class="btn btn-soft">Raconter un souvenir</button>
-				</div>
-			</div>
-		</section>
+    <audio id="bg-audio" loop preload="auto"></audio>
 
-		<div id="app" class="app-shell" hidden>
-			<header class="topbar">
-				<div>
-					<p class="eyebrow">Papa 2.0</p>
-					<h2>Ce mur appartient à la famille.</h2>
-					<p class="microcopy">Ici, chacun peut déposer un morceau de son histoire.</p>
-				</div>
-				<div class="topbar-actions">
-					<button id="theme-toggle" class="icon-btn" aria-label="Basculer le thème">☀️</button>
-				</div>
-			</header>
+    <section id="landing" class="landing" aria-label="Accueil">
+      <div class="landing-card glass">
+        <div class="hero-photo-wrap">
+          <img id="hero-photo" alt="Portrait de Papa" />
+          <div id="hero-photo-fallback" class="hero-photo-fallback" aria-hidden="true">Papa</div>
+        </div>
+        <p class="kicker">Bienvenue dans les souvenirs de Papa.</p>
+        <h1 id="hero-name">Papa</h1>
+        <p id="hero-dates" class="hero-dates">1956 - 2023</p>
+        <p id="hero-summary" class="hero-summary">Une vie de transmission, de douceur et de force.</p>
+        <p id="hero-welcome" class="hero-welcome">Un mur commun, construit par ceux qui l'aiment.</p>
+        <div class="landing-actions">
+          <button id="enter-btn" class="btn btn-primary">Entrer dans ses souvenirs</button>
+          <button id="open-composer-from-landing" class="btn btn-soft">Raconter un souvenir</button>
+        </div>
+      </div>
+      <button id="music-toggle-landing" class="music-toggle" aria-label="Activer ou couper la musique">🔊</button>
+    </section>
 
-			<aside class="sidebar-nav" aria-label="Navigation principale">
-				<button class="nav-item active" data-view="feed">Mur</button>
-				<button class="nav-item" data-view="timeline">Moments</button>
-				<button class="nav-item" data-view="book">Livre vivant</button>
-				<button class="nav-item" data-view="places">Lieux</button>
-				<button class="nav-item" data-view="tools">Outils</button>
-			</aside>
+    <div id="app" class="app-shell" hidden>
+      <header class="topbar glass">
+        <div>
+          <p class="kicker" id="app-title-click">Papa 2.0</p>
+          <h2 id="top-title">Ce qu'il nous a laisse vit encore dans chacun de nous.</h2>
+          <p class="subtext">Chaque souvenir ajoute ici prolonge son histoire.</p>
+        </div>
+        <div class="top-actions">
+          <button id="music-toggle" class="icon-btn" aria-label="Activer ou couper la musique">🔊</button>
+          <button id="theme-toggle" class="icon-btn" aria-label="Changer de thème">☀️</button>
+        </div>
+      </header>
 
-			<main class="content">
-				<section class="hero-ribbon card">
-					<p class="eyebrow">Memoire collective</p>
-					<h3>Un espace vivant, intime et partage pour raconter son histoire.</h3>
-				</section>
+      <nav class="desktop-nav glass" aria-label="Navigation desktop">
+        <button class="nav-link active" data-scroll="#landing-anchor">Accueil</button>
+        <button class="nav-link" data-scroll="#feed-anchor">Mur</button>
+        <button class="nav-link" data-scroll="#timeline-anchor">Timeline</button>
+        <button class="nav-link" data-scroll="#movement-anchor">Moments</button>
+        <button class="nav-link" data-scroll="#book-anchor">Livre vivant</button>
+      </nav>
 
-				<section class="memory-day card" id="memory-day"></section>
+      <main class="content">
+        <div id="landing-anchor"></div>
 
-				<section class="quick-stats card" id="quick-stats" aria-label="Statistiques du mur"></section>
+        <section class="hero-banner glass card">
+          <h3>Un souvenir n'a pas besoin d'etre parfait pour etre precieux.</h3>
+          <p>Ce mur appartient a la famille.</p>
+        </section>
 
-				<section class="stories card" aria-label="Collections de souvenirs">
-					<h3>Collections</h3>
-					<div id="stories-list" class="stories-list"></div>
-				</section>
+        <section id="memory-day" class="card glass"></section>
+        <section id="quick-stats" class="card glass quick-stats"></section>
 
-				<section class="controls card" aria-label="Recherche et filtres">
-					<div class="search-row">
-						<input
-							id="search-input"
-							type="search"
-							placeholder="Rechercher un souvenir, un lieu, un prénom, un tag..."
-							aria-label="Rechercher"
-						/>
-						<select id="sort-select" aria-label="Trier les souvenirs">
-							<option value="recent">Plus récents</option>
-							<option value="old">Plus anciens</option>
-							<option value="loved">Les plus aimés</option>
-						</select>
-					</div>
-					<div id="filter-chips" class="chips"></div>
-					<button id="clear-filters" class="btn btn-soft btn-sm">Effacer les filtres</button>
-				</section>
+        <section class="stories card glass" aria-label="Stories familiales">
+          <h3>Stories</h3>
+          <div id="stories-list" class="stories-list"></div>
+        </section>
 
-				<section id="feed-view" data-view-panel="feed">
-					<section class="anniversary card">
-						<h3>Moments de commémoration</h3>
-						<div class="anniversary-grid">
-							<article>
-								<h4>Son anniversaire</h4>
-								<p>Un espace pour faire remonter les souvenirs lumineux à cette date.</p>
-							</article>
-							<article>
-								<h4>Date de souvenir</h4>
-								<p>Le mur pourra proposer automatiquement des souvenirs liés à cette période.</p>
-							</article>
-							<article>
-								<h4>Fêtes familiales</h4>
-								<p>Préparer des moments partagés autour d'images et de voix.</p>
-							</article>
-						</div>
-						<div class="sample-remembrance" id="sample-remembrance"></div>
-					</section>
+        <section class="controls card glass" aria-label="Recherche et filtres">
+          <div class="controls-row">
+            <input id="search-input" type="search" placeholder="Rechercher un souvenir, un lieu, un tag..." aria-label="Rechercher" />
+            <select id="sort-select" aria-label="Tri">
+              <option value="recent">Plus recents</option>
+              <option value="old">Plus anciens</option>
+              <option value="loved">Les plus aimes</option>
+            </select>
+          </div>
+          <div id="filter-chips" class="chips"></div>
+          <button id="clear-filters" class="btn btn-soft btn-sm">Effacer les filtres</button>
+        </section>
 
-					<section id="feed" class="feed" aria-live="polite"></section>
-				</section>
+        <section id="timeline-anchor" class="timeline-living card glass">
+          <div class="timeline-head">
+            <h3>Timeline vivante</h3>
+            <p>Faites glisser pour traverser les grandes periodes de sa vie.</p>
+          </div>
+          <input id="timeline-range" type="range" min="0" max="6" value="0" step="1" aria-label="Choisir une periode" />
+          <div class="timeline-periods" id="timeline-periods"></div>
+          <article id="timeline-focus" class="timeline-focus"></article>
+          <button id="timeline-filter-btn" class="btn btn-soft btn-sm">Voir les souvenirs de cette periode</button>
+        </section>
 
-				<section id="timeline-view" data-view-panel="timeline" hidden>
-					<article class="card">
-						<h3>La ligne de vie</h3>
-						<div id="timeline-events" class="timeline"></div>
-					</article>
-				</section>
+        <section id="movement-anchor" class="movement card glass">
+          <div class="movement-head">
+            <h3>Souvenirs en mouvement</h3>
+            <p>Une respiration visuelle qui fait vivre le mur.</p>
+          </div>
+          <div id="movement-carousel" class="movement-carousel"></div>
+        </section>
 
-				<section id="book-view" data-view-panel="book" hidden>
-					<article class="card">
-						<h3>Livre vivant</h3>
-						<p>Un souvenir n'a pas besoin d'être parfait pour être précieux.</p>
-						<div id="book-chapters" class="book-chapters"></div>
-						<button id="generate-page" class="btn btn-primary">Générer une page souvenir</button>
-						<section id="generated-page" class="generated-page" hidden></section>
-					</article>
-				</section>
+        <section id="feed-anchor" class="feed-wrap">
+          <h3 class="section-title">Mur des souvenirs</h3>
+          <section id="feed" class="feed" aria-live="polite"></section>
+        </section>
 
-				<section id="places-view" data-view-panel="places" hidden>
-					<article class="card map-card">
-						<h3>Les lieux de sa vie</h3>
-						<div id="places-grid" class="places-grid"></div>
-					</article>
-				</section>
+        <section id="book-anchor" class="book card glass">
+          <h3>Livre vivant</h3>
+          <p>Ce qu'il nous a laisse vit encore dans chacun de nous.</p>
+          <div id="book-chapters" class="book-chapters"></div>
+          <button id="generate-page" class="btn btn-primary">Creer une page souvenir</button>
+          <section id="generated-page" class="generated-page" hidden></section>
+        </section>
 
-				<section id="tools-view" data-view-panel="tools" hidden>
-					<article class="card tools-card">
-						<h3>Outils locaux</h3>
-						<p>
-							Version actuelle: les souvenirs ajoutés sont gardés sur cet appareil. La version
-							familiale synchronisée viendra ensuite.
-						</p>
-						<div class="tools-grid">
-							<button id="export-json" class="btn btn-soft">Exporter les souvenirs (JSON)</button>
-							<label class="btn btn-soft file-label" for="import-json">Importer les souvenirs (JSON)</label>
-							<input id="import-json" type="file" accept="application/json" hidden />
-							<button id="reset-demo" class="btn btn-soft">Réinitialiser les données</button>
-							<button id="print-page" class="btn btn-soft">Imprimer / Sauvegarder la page</button>
-						</div>
-						<div class="qr-placeholder">
-							<canvas id="qr-canvas" width="180" height="180" aria-label="QR placeholder"></canvas>
-							<p>https://rubenzerbib.github.io/papa-2.0/</p>
-							<small>QR visuel local (placeholder). Un QR réel peut être ajouté ensuite.</small>
-						</div>
-					</article>
-				</section>
-			</main>
+        <section class="qr card glass">
+          <h3>Scanner le QR code</h3>
+          <canvas id="qr-canvas" width="180" height="180" aria-label="QR code placeholder"></canvas>
+          <p id="qr-url">https://rubenzerbib.github.io/papa-2.0/</p>
+        </section>
+      </main>
 
-			<button id="fab-add" class="fab" aria-label="Ajouter un souvenir">+</button>
+      <button id="fab-add" class="fab" aria-label="Raconter un souvenir">+</button>
+      <button id="admin-dot" class="admin-dot" aria-label="Acces admin discret"></button>
 
-			<nav class="bottom-nav" aria-label="Navigation mobile">
-				<button class="bottom-nav-item active" data-view="feed">Mur</button>
-				<button class="bottom-nav-item" data-view="timeline">Moments</button>
-				<button class="bottom-nav-item add" id="bottom-add">+</button>
-				<button class="bottom-nav-item" data-view="book">Livre</button>
-				<button class="bottom-nav-item" data-view="places">Lieux</button>
-			</nav>
-		</div>
+      <nav class="bottom-nav glass" aria-label="Navigation mobile">
+        <button class="bottom-link" data-scroll="#landing-anchor">Accueil</button>
+        <button class="bottom-link" data-scroll="#feed-anchor">Mur</button>
+        <button class="bottom-link add" id="bottom-add">+</button>
+        <button class="bottom-link" data-scroll="#timeline-anchor">Timeline</button>
+        <button class="bottom-link" id="bottom-admin">Admin</button>
+      </nav>
+    </div>
 
-		<dialog id="composer-modal" class="composer" aria-label="Ajouter un souvenir">
-			<form id="composer-form" method="dialog">
-				<header>
-					<h3>Raconter un souvenir</h3>
-					<button type="button" id="close-composer" class="icon-btn" aria-label="Fermer">✕</button>
-				</header>
-				<label>
-					Prénom facultatif
-					<input name="contributor" type="text" placeholder="Ex: Léa" />
-				</label>
-				<label>
-					Type de souvenir
-					<select name="type" required>
-						<option value="photo">photo</option>
-						<option value="video">vidéo</option>
-						<option value="audio">audio</option>
-						<option value="text">texte</option>
-						<option value="histoire">histoire</option>
-						<option value="lieu">lieu</option>
-					</select>
-				</label>
-				<label>
-					Texte / anecdote
-					<textarea name="caption" rows="4" required placeholder="Racontez un moment..." ></textarea>
-				</label>
-				<label>
-					Date approximative
-					<input name="dateLabel" type="text" placeholder="Ex: Été 1998" />
-				</label>
-				<label>
-					Lieu
-					<input name="location" type="text" placeholder="Ex: Marseille" />
-				</label>
-				<label>
-					Tags / moment
-					<input name="tags" type="text" placeholder="famille, vacances, cuisine" />
-				</label>
+    <dialog id="composer-modal" class="modal" aria-label="Composer un souvenir">
+      <form id="composer-form" class="modal-body" method="dialog">
+        <header>
+          <h3>Raconter un souvenir</h3>
+          <button type="button" id="close-composer" class="icon-btn" aria-label="Fermer">✕</button>
+        </header>
+        <label> Prenom <input name="contributor" type="text" placeholder="Ex: Lea" /> </label>
+        <label>
+          Type de souvenir
+          <select name="type" required>
+            <option value="photo">photo</option>
+            <option value="video">video</option>
+            <option value="audio">audio</option>
+            <option value="text">texte</option>
+          </select>
+        </label>
+        <label> Texte du souvenir <textarea name="caption" rows="4" required placeholder="Racontez son souvenir..."></textarea> </label>
+        <label> Date approximative <input name="dateLabel" type="text" placeholder="Ex: Ete 1998" /> </label>
+        <label> Lieu <input name="location" type="text" placeholder="Ex: Marseille" /> </label>
+        <label> Periode <input name="period" type="text" placeholder="Enfance, Jeunesse, Mariage..." /> </label>
+        <label> Tags <input name="tags" type="text" placeholder="famille, enfance, fete, voyage, voix, heritage" /> </label>
+        <label> Fichier local <input id="composer-file" name="media" type="file" accept="image/*,video/*,audio/*" /> </label>
+        <div id="composer-preview" class="composer-preview"></div>
+        <p class="note-sync">Version actuelle : les souvenirs ajoutes sont gardes sur cet appareil. La version familiale synchronisee viendra ensuite.</p>
+        <button type="submit" class="btn btn-primary">Publier sur le mur</button>
+      </form>
+    </dialog>
 
-				<label>
-					Upload photo (local)
-					<input name="photo" type="file" accept="image/*" />
-				</label>
-				<label>
-					Upload vidéo (local)
-					<input name="video" type="file" accept="video/*" />
-				</label>
-				<label>
-					Upload audio (local)
-					<input name="audio" type="file" accept="audio/*" />
-				</label>
+    <dialog id="admin-login-modal" class="modal" aria-label="Connexion admin">
+      <form id="admin-login-form" class="modal-body" method="dialog">
+        <header>
+          <h3>Portail admin</h3>
+          <button type="button" id="close-admin-login" class="icon-btn" aria-label="Fermer">✕</button>
+        </header>
+        <label> Identifiant <input name="username" type="text" required /> </label>
+        <label> Mot de passe <input name="password" type="password" required /> </label>
+        <p id="admin-login-error" class="admin-error" hidden>Identifiants invalides.</p>
+        <button type="submit" class="btn btn-primary">Se connecter</button>
+      </form>
+    </dialog>
 
-				<p class="note-sync">
-					Version actuelle: les souvenirs ajoutés sont gardés sur cet appareil. La version
-					familiale synchronisée viendra ensuite.
-				</p>
+    <dialog id="admin-panel-modal" class="modal admin-panel" aria-label="Dashboard admin">
+      <div class="modal-body">
+        <header>
+          <h3>Dashboard admin local</h3>
+          <button type="button" id="close-admin-panel" class="icon-btn" aria-label="Fermer">✕</button>
+        </header>
 
-				<div class="composer-actions">
-					<button type="submit" class="btn btn-primary">Publier sur le mur</button>
-				</div>
-			</form>
-		</dialog>
+        <section class="admin-block">
+          <h4>Landing</h4>
+          <label>Photo principale <input id="admin-hero-photo" type="file" accept="image/*" /></label>
+          <label>Nom <input id="admin-name" type="text" /></label>
+          <label>Dates <input id="admin-dates" type="text" /></label>
+          <label>Resume <textarea id="admin-summary" rows="2"></textarea></label>
+          <label>Phrase d'accueil <textarea id="admin-welcome" rows="2"></textarea></label>
+          <label>Chemin musique <input id="admin-music-path" type="text" /></label>
+          <label>Couleur principale <input id="admin-accent" type="color" /></label>
+          <label>URL QR officielle <input id="admin-qr-url" type="text" /></label>
+          <button id="admin-save-config" class="btn btn-primary">Enregistrer la configuration</button>
+        </section>
 
-		<template id="skeleton-template">
-			<article class="post skeleton">
-				<div class="skeleton-line lg"></div>
-				<div class="skeleton-box"></div>
-				<div class="skeleton-line"></div>
-				<div class="skeleton-line sm"></div>
-			</article>
-		</template>
+        <section class="admin-block">
+          <h4>Posts</h4>
+          <div id="admin-post-list" class="admin-list"></div>
+          <form id="admin-post-form" class="admin-form">
+            <input type="hidden" name="id" />
+            <label>Prenom <input name="contributor" type="text" /></label>
+            <label>Caption <textarea name="caption" rows="2"></textarea></label>
+            <label>Date <input name="dateLabel" type="text" /></label>
+            <label>Lieu <input name="location" type="text" /></label>
+            <label>Periode <input name="period" type="text" /></label>
+            <label>Tags <input name="tags" type="text" /></label>
+            <label>Epingler <input name="pinned" type="checkbox" /></label>
+            <div class="admin-actions">
+              <button type="submit" class="btn btn-soft">Enregistrer ce post</button>
+              <button type="button" id="admin-delete-post" class="btn btn-soft danger">Supprimer ce post</button>
+            </div>
+          </form>
+        </section>
 
-		<script src="app.js"></script>
-	</body>
+        <section class="admin-block">
+          <h4>Commentaires</h4>
+          <div id="admin-comment-list" class="admin-list"></div>
+        </section>
+
+        <section class="admin-block">
+          <h4>Outils locaux</h4>
+          <div class="admin-actions wrap">
+            <button id="export-json" class="btn btn-soft" type="button">Exporter JSON</button>
+            <label class="btn btn-soft file-label" for="import-json">Importer JSON</label>
+            <input id="import-json" type="file" accept="application/json" hidden />
+            <button id="reset-demo" class="btn btn-soft" type="button">Reinitialiser demo</button>
+            <button id="print-page" class="btn btn-soft" type="button">Imprimer la page</button>
+          </div>
+        </section>
+      </div>
+    </dialog>
+
+    <template id="skeleton-template">
+      <article class="post skeleton">
+        <div class="skeleton-line lg"></div>
+        <div class="skeleton-box"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line sm"></div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
 </html>

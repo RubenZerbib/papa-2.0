@@ -1,255 +1,43 @@
 const STORAGE_KEYS = {
-  posts: "papa2_posts",
-  filters: "papa2_filters",
-  theme: "papa2_theme",
-  memoryDay: "papa2_memory_day",
-  saved: "papa2_saved_posts",
+  posts: "papa2_posts_v3",
+  config: "papa2_config_v3",
+  filters: "papa2_filters_v3",
+  saved: "papa2_saved_v3",
 };
 
 const REACTIONS = ["❤️", "🕯️", "🙏", "🤍", "😂", "😢"];
-
-const STORIES = [
-  "Famille",
-  "Vacances",
-  "Fetes",
-  "Voix",
-  "Videos",
-  "Lieux",
-  "Heritage",
-  "Drole",
-  "Cuisine",
-  "Enfance",
+const STORIES = ["Famille", "Enfance", "Fetes", "Voyages", "Voix", "Videos", "Heritage", "Drole"];
+const FILTER_CHIPS = ["Tous", "Photos", "Videos", "Audio", "Textes", "Famille", "Enfance", "Voyages", "Fetes", "Heritage"];
+const TIMELINE_PERIODS = [
+  { key: "enfance", label: "Enfance", text: "Les premiers gestes, les premiers reves." },
+  { key: "jeunesse", label: "Jeunesse", text: "Les choix, l'elan, les chemins ouverts." },
+  { key: "mariage", label: "Mariage", text: "Une histoire d'amour construite avec patience." },
+  { key: "naissance", label: "Naissance des enfants", text: "Une maison pleine de voix et de rires." },
+  { key: "voyages", label: "Voyages", text: "Des horizons ouverts et de beaux retours." },
+  { key: "famille", label: "Moments en famille", text: "Les tables longues, les photos floues, l'essentiel." },
+  { key: "heritage", label: "Heritage", text: "Ce qu'il nous a laisse vit encore en nous." },
 ];
 
-const FILTER_CHIPS = ["Tous", "Photos", "Videos", "Audio", "Textes", "Famille", "Voyages", "Fetes", "Heritage"];
-
-const TIMELINE_EVENTS = [
-  "Naissance",
-  "Enfance",
-  "Jeunesse",
-  "Mariage",
-  "Naissance des enfants",
-  "Voyages",
-  "Moments en famille",
-  "Transmission",
-  "Souvenirs apres son depart",
-];
-
-const TIMELINE_KEYWORDS = {
-  naissance: ["naissance", "debuts", "1987", "jeunesse"],
-  enfance: ["enfance", "velo", "enfant", "atelier"],
-  jeunesse: ["jeunesse", "voyage", "cassette"],
-  mariage: ["mariage", "famille", "fete"],
-  "naissance des enfants": ["enfants", "famille", "enfance"],
-  voyages: ["voyages", "vacances", "lisbonne", "sete"],
-  "moments en famille": ["famille", "dimanche", "maison"],
-  transmission: ["transmission", "valeurs", "heritage", "recette"],
-  "souvenirs apres son depart": ["souvenir", "anniversaire", "bougie", "laisse"],
+const DEFAULT_CONFIG = {
+  name: "Papa",
+  dates: "1956 - 2023",
+  summary: "Une vie de transmission, de douceur et de force.",
+  welcome: "Un mur commun, construit par ceux qui l'aiment.",
+  heroPhoto: "",
+  musicPath: "assets/music/background.mp3",
+  musicEnabled: true,
+  accentColor: "#5f84ab",
+  qrUrl: "https://rubenzerbib.github.io/papa-2.0/",
+  theme: "light",
 };
-
-const BASE_URL = `${window.location.origin}${window.location.pathname.replace(/index\.html$/, "")}`;
-
-const demoPosts = [
-  {
-    id: "p1",
-    type: "photo",
-    contributor: "Lina",
-    caption: "Cette photo de table du dimanche me rappelle sa facon de decouper le pain en souriant avant meme de s'asseoir.",
-    dateLabel: "Printemps 1994",
-    createdAt: "1994-04-10T12:00:00.000Z",
-    location: "Lyon",
-    tags: ["famille", "dimanche", "cuisine"],
-    media: [{ type: "photo", title: "Table du dimanche", url: "", placeholder: true }],
-    reactions: { "❤️": 17, "🕯️": 3, "🙏": 8, "🤍": 4, "😂": 5, "😢": 2 },
-    comments: [
-      { id: uid(), name: "Nora", text: "On entend presque sa voix.", createdAt: Date.now() - 50000 },
-      { id: uid(), name: "Yassine", text: "Et son tablier bleu!", createdAt: Date.now() - 22000 },
-    ],
-    pinned: true,
-  },
-  {
-    id: "p2",
-    type: "video",
-    contributor: "Famille",
-    caption: "Ancienne cassette numerisee. Il nous apprend a faire du velo avec une patience infinie.",
-    dateLabel: "Ete 1991",
-    createdAt: "1991-07-18T15:00:00.000Z",
-    location: "Valence",
-    tags: ["enfance", "video", "transmission"],
-    media: [
-      { type: "video", title: "Lecon de velo", url: "", placeholder: true },
-      { type: "photo", title: "Pause glace", url: "", placeholder: true },
-    ],
-    reactions: baseReactions(12),
-    comments: [],
-    pinned: false,
-  },
-  {
-    id: "p3",
-    type: "audio",
-    contributor: "Karim",
-    caption: "Message vocal retrouve: il dit seulement " +
-      '"rentrez bien, je vous attends"' +
-      ". Trois mots qui tiennent toute une maison.",
-    dateLabel: "2006",
-    createdAt: "2006-10-09T10:00:00.000Z",
-    location: "Paris",
-    tags: ["voix", "audio", "famille"],
-    media: [{ type: "audio", title: "Message du soir", url: "", placeholder: true }],
-    reactions: baseReactions(21),
-    comments: [],
-    pinned: false,
-  },
-  {
-    id: "p4",
-    type: "text",
-    contributor: "Leila",
-    caption: "Histoire drole: il cachait les gateaux pour les " +
-      "invites, puis il oubliait ou il les avait ranges. On les retrouvait un mois plus tard.",
-    dateLabel: "Hiver 2001",
-    createdAt: "2001-12-01T18:00:00.000Z",
-    location: "Grenoble",
-    tags: ["drole", "fetes"],
-    media: [{ type: "text", title: "Anecdote", url: "", placeholder: true }],
-    reactions: baseReactions(9),
-    comments: [],
-    pinned: false,
-  },
-  {
-    id: "p5",
-    type: "photo",
-    contributor: "Ines",
-    caption: "Vacances en bord de mer. Il ramassait des coquillages comme des tresors et les nommait tous.",
-    dateLabel: "Aout 1998",
-    createdAt: "1998-08-20T09:00:00.000Z",
-    location: "Sete",
-    tags: ["vacances", "voyages", "famille"],
-    media: [{ type: "photo", title: "Coquillages", url: "", placeholder: true }],
-    reactions: baseReactions(15),
-    comments: [],
-    pinned: false,
-  },
-  {
-    id: "p6",
-    type: "mixed",
-    contributor: "Maya",
-    caption: "Carnet de voyage: billets de train, carte postale, et sa phrase preferee: " +
-      '"on part pour revenir plus riches de liens"' +
-      ".",
-    dateLabel: "2009",
-    createdAt: "2009-04-21T14:00:00.000Z",
-    location: "Lisbonne",
-    tags: ["voyages", "heritage", "document"],
-    media: [
-      { type: "document", title: "Carte postale", url: "", placeholder: true },
-      { type: "photo", title: "Billets", url: "", placeholder: true },
-    ],
-    reactions: baseReactions(11),
-    comments: [],
-    pinned: false,
-  },
-  {
-    id: "p7",
-    type: "text",
-    contributor: "Nadia",
-    caption: "Sa recette des poivrons farcis: " +
-      "prendre son temps, gouter, recommencer, et toujours ajouter une blague.",
-    dateLabel: "Fete familiale 2012",
-    createdAt: "2012-06-15T20:00:00.000Z",
-    location: "Montpellier",
-    tags: ["cuisine", "fetes", "famille"],
-    media: [{ type: "text", title: "Recette", url: "", placeholder: true }],
-    reactions: baseReactions(23),
-    comments: [],
-    pinned: false,
-  },
-  {
-    id: "p8",
-    type: "quote",
-    contributor: "Famille",
-    caption: "Ce qu'il repetait souvent: " +
-      '"la douceur n'est pas une faiblesse, c'est une force qui rassemble"' +
-      ".",
-    dateLabel: "Transmission",
-    createdAt: "2015-03-03T13:00:00.000Z",
-    location: "Lyon",
-    tags: ["heritage", "valeurs"],
-    media: [{ type: "text", title: "Citation", url: "", placeholder: true }],
-    reactions: baseReactions(28),
-    comments: [],
-    pinned: false,
-  },
-  {
-    id: "p9",
-    type: "document",
-    contributor: "Sam",
-    caption: "Lettre retrouvee dans un livre. Chaque ligne ressemble a une main posee sur l'epaule.",
-    dateLabel: "1987",
-    createdAt: "1987-11-22T07:00:00.000Z",
-    location: "Oran",
-    tags: ["lettre", "document", "famille"],
-    media: [{ type: "document", title: "Lettre manuscrite", url: "", placeholder: true }],
-    reactions: baseReactions(19),
-    comments: [],
-    pinned: false,
-  },
-  {
-    id: "p10",
-    type: "anniversary",
-    contributor: "Famille",
-    caption: "Aujourd'hui, nous allumons une bougie et nous partageons ce qui continue de vivre grace a lui.",
-    dateLabel: "Date de souvenir",
-    createdAt: "2025-06-18T08:00:00.000Z",
-    location: "Maison familiale",
-    tags: ["anniversaire", "souvenir", "famille"],
-    media: [{ type: "photo", title: "Bougie", url: "", placeholder: true }],
-    reactions: baseReactions(30),
-    comments: [],
-    pinned: true,
-  },
-  {
-    id: "p11",
-    type: "photo",
-    contributor: "Rami",
-    caption: "Mon souvenir d'enfant: ses grandes mains qui savaient reparer un jouet et une journee en meme temps.",
-    dateLabel: "1996",
-    createdAt: "1996-02-14T16:00:00.000Z",
-    location: "Lyon",
-    tags: ["enfance", "famille"],
-    media: [{ type: "photo", title: "Atelier", url: "", placeholder: true }],
-    reactions: baseReactions(14),
-    comments: [],
-    pinned: false,
-  },
-  {
-    id: "p12",
-    type: "text",
-    contributor: "Famille",
-    caption: "Ce qu'il nous a laisse: une facon d'accueillir, de transmettre, de rire meme les jours lourds.",
-    dateLabel: "Aujourd'hui",
-    createdAt: "2026-01-08T09:30:00.000Z",
-    location: "Partout avec nous",
-    tags: ["heritage", "valeurs", "famille"],
-    media: [{ type: "text", title: "Ce qu'il nous a laisse", url: "", placeholder: true }],
-    reactions: baseReactions(26),
-    comments: [],
-    pinned: true,
-  },
-];
 
 const state = {
   posts: [],
-  savedPosts: new Set(),
-  filters: {
-    search: "",
-    chip: "Tous",
-    sort: "recent",
-    story: "",
-    timeline: "",
-    location: "",
-  },
-  activeView: "feed",
-  expandedComments: new Set(),
+  config: { ...DEFAULT_CONFIG },
+  filters: { search: "", chip: "Tous", story: "", sort: "recent", period: "" },
+  saved: new Set(),
+  admin: { unlocked: false, clickCount: 0 },
+  movement: { idx: 0, paused: false, timer: null },
 };
 
 const els = {};
@@ -257,314 +45,401 @@ const els = {};
 document.addEventListener("DOMContentLoaded", init);
 
 function init() {
-  cacheElements();
-  loadTheme();
-  initData();
-  renderStories();
-  renderFilterChips();
+  cacheEls();
+  hydrateState();
+  applyTheme();
+  applyConfigToUI();
+  initAudio();
   bindEvents();
   showSkeletons();
+
   setTimeout(() => {
+    renderStories();
+    renderFilterChips();
+    renderTimeline();
     renderAll();
-    renderSampleRemembrance();
+    renderMovement();
     drawQrPlaceholder();
-    handleHashNavigation();
-  }, 350);
+    jumpFromHash();
+  }, 220);
 }
 
-function cacheElements() {
-  els.landing = document.getElementById("landing");
-  els.app = document.getElementById("app");
-  els.enterBtn = document.getElementById("enter-btn");
-  els.openComposerFromLanding = document.getElementById("open-composer-from-landing");
-  els.themeToggle = document.getElementById("theme-toggle");
-  els.searchInput = document.getElementById("search-input");
-  els.sortSelect = document.getElementById("sort-select");
-  els.filterChips = document.getElementById("filter-chips");
-  els.clearFilters = document.getElementById("clear-filters");
-  els.feed = document.getElementById("feed");
-  els.storiesList = document.getElementById("stories-list");
-  els.timelineEvents = document.getElementById("timeline-events");
-  els.bookChapters = document.getElementById("book-chapters");
-  els.generatePage = document.getElementById("generate-page");
-  els.generatedPage = document.getElementById("generated-page");
-  els.memoryDay = document.getElementById("memory-day");
-  els.quickStats = document.getElementById("quick-stats");
-  els.placesGrid = document.getElementById("places-grid");
-  els.modal = document.getElementById("composer-modal");
-  els.closeComposer = document.getElementById("close-composer");
-  els.composerForm = document.getElementById("composer-form");
-  els.fab = document.getElementById("fab-add");
-  els.bottomAdd = document.getElementById("bottom-add");
-  els.sampleRemembrance = document.getElementById("sample-remembrance");
-  els.exportJson = document.getElementById("export-json");
-  els.importJson = document.getElementById("import-json");
-  els.resetDemo = document.getElementById("reset-demo");
-  els.printPage = document.getElementById("print-page");
-  els.qrCanvas = document.getElementById("qr-canvas");
+function cacheEls() {
+  const ids = [
+    "landing", "app", "enter-btn", "open-composer-from-landing", "music-toggle-landing", "music-toggle", "theme-toggle",
+    "hero-photo", "hero-photo-fallback", "hero-name", "hero-dates", "hero-summary", "hero-welcome", "top-title", "app-title-click",
+    "search-input", "sort-select", "filter-chips", "clear-filters", "stories-list", "timeline-range", "timeline-periods", "timeline-focus",
+    "timeline-filter-btn", "movement-carousel", "feed", "memory-day", "quick-stats", "book-chapters", "generate-page", "generated-page",
+    "qr-canvas", "qr-url", "composer-modal", "composer-form", "composer-file", "composer-preview", "close-composer", "fab-add", "bottom-add",
+    "admin-dot", "bottom-admin", "admin-login-modal", "admin-login-form", "close-admin-login", "admin-login-error", "admin-panel-modal",
+    "close-admin-panel", "admin-hero-photo", "admin-name", "admin-dates", "admin-summary", "admin-welcome", "admin-music-path", "admin-accent",
+    "admin-qr-url", "admin-save-config", "admin-post-list", "admin-post-form", "admin-delete-post", "admin-comment-list", "export-json",
+    "import-json", "reset-demo", "print-page", "bg-audio",
+  ];
+
+  ids.forEach((id) => {
+    els[id] = document.getElementById(id);
+  });
+}
+
+function hydrateState() {
+  state.posts = loadJson(STORAGE_KEYS.posts) || demoPosts();
+  state.config = { ...DEFAULT_CONFIG, ...(loadJson(STORAGE_KEYS.config) || {}) };
+  state.filters = { ...state.filters, ...(loadJson(STORAGE_KEYS.filters) || {}) };
+  state.saved = new Set(loadJson(STORAGE_KEYS.saved) || []);
+  persistAll();
+  syncFilterInputs();
 }
 
 function bindEvents() {
-  els.enterBtn.addEventListener("click", () => {
-    els.landing.hidden = true;
-    els.app.hidden = false;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-
-  els.openComposerFromLanding.addEventListener("click", () => {
-    els.landing.hidden = true;
-    els.app.hidden = false;
+  els["enter-btn"].addEventListener("click", enterApp);
+  els["open-composer-from-landing"].addEventListener("click", () => {
+    enterApp();
     openComposer();
   });
 
-  els.themeToggle.addEventListener("click", toggleTheme);
+  ["music-toggle", "music-toggle-landing"].forEach((id) => {
+    els[id].addEventListener("click", toggleMusic);
+  });
 
-  els.searchInput.addEventListener("input", (e) => {
+  els["theme-toggle"].addEventListener("click", () => {
+    state.config.theme = state.config.theme === "dark" ? "light" : "dark";
+    persistConfig();
+    applyTheme();
+  });
+
+  els["search-input"].addEventListener("input", (e) => {
     state.filters.search = e.target.value.trim().toLowerCase();
     persistFilters();
     renderFeed();
   });
 
-  els.sortSelect.addEventListener("change", (e) => {
+  els["sort-select"].addEventListener("change", (e) => {
     state.filters.sort = e.target.value;
     persistFilters();
     renderFeed();
   });
 
-  els.clearFilters.addEventListener("click", () => {
-    state.filters = {
-      search: "",
-      chip: "Tous",
-      sort: "recent",
-      story: "",
-      timeline: "",
-      location: "",
-    };
+  els["clear-filters"].addEventListener("click", () => {
+    state.filters = { search: "", chip: "Tous", story: "", sort: "recent", period: "" };
     persistFilters();
     syncFilterInputs();
-    renderAll();
+    renderStories();
+    renderFilterChips();
+    renderFeed();
   });
 
-  document.querySelectorAll("[data-view]").forEach((btn) => {
-    btn.addEventListener("click", () => setView(btn.dataset.view));
+  els["timeline-range"].addEventListener("input", renderTimelineFocus);
+  els["timeline-filter-btn"].addEventListener("click", () => {
+    const idx = Number(els["timeline-range"].value || 0);
+    state.filters.period = TIMELINE_PERIODS[idx].key;
+    state.filters.story = "";
+    state.filters.chip = "Tous";
+    persistFilters();
+    renderStories();
+    renderFilterChips();
+    renderFeed();
+    scrollToSection("#feed-anchor");
   });
 
-  document.querySelectorAll(".nav-item").forEach((btn) => {
-    btn.addEventListener("click", () => setView(btn.dataset.view));
+  document.querySelectorAll("[data-scroll]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.scroll;
+      if (target) scrollToSection(target);
+    });
   });
 
-  document.querySelectorAll(".bottom-nav-item[data-view]").forEach((btn) => {
-    btn.addEventListener("click", () => setView(btn.dataset.view));
+  els["fab-add"].addEventListener("click", openComposer);
+  els["bottom-add"].addEventListener("click", openComposer);
+  els["close-composer"].addEventListener("click", () => els["composer-modal"].close());
+  els["composer-file"].addEventListener("change", previewComposer);
+  els["composer-form"].addEventListener("submit", submitComposer);
+
+  els["generate-page"].addEventListener("click", generateBookPage);
+
+  els["admin-dot"].addEventListener("click", openAdminLogin);
+  els["bottom-admin"].addEventListener("click", openAdminLogin);
+  els["app-title-click"].addEventListener("click", () => {
+    state.admin.clickCount += 1;
+    if (state.admin.clickCount >= 5) {
+      state.admin.clickCount = 0;
+      openAdminLogin();
+    }
   });
 
-  els.fab.addEventListener("click", openComposer);
-  els.bottomAdd.addEventListener("click", openComposer);
-  els.closeComposer.addEventListener("click", () => els.modal.close());
+  els["close-admin-login"].addEventListener("click", () => els["admin-login-modal"].close());
+  els["admin-login-form"].addEventListener("submit", adminLogin);
+  els["close-admin-panel"].addEventListener("click", () => els["admin-panel-modal"].close());
 
-  els.composerForm.addEventListener("submit", handleCreatePost);
+  els["admin-save-config"].addEventListener("click", saveAdminConfig);
+  els["admin-post-form"].addEventListener("submit", saveAdminPost);
+  els["admin-delete-post"].addEventListener("click", deleteAdminPost);
 
-  els.generatePage.addEventListener("click", generateMemoryPage);
+  els["export-json"].addEventListener("click", exportJson);
+  els["import-json"].addEventListener("change", importJson);
+  els["reset-demo"].addEventListener("click", resetDemo);
+  els["print-page"].addEventListener("click", () => window.print());
 
-  els.exportJson.addEventListener("click", exportPostsJson);
-  els.importJson.addEventListener("change", importPostsJson);
-  els.resetDemo.addEventListener("click", resetDemoData);
-  els.printPage.addEventListener("click", () => window.print());
+  ["click", "keydown", "touchstart"].forEach((evt) => {
+    document.addEventListener(evt, () => {
+      if (state.config.musicEnabled) tryStartMusic();
+    }, { once: true });
+  });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "/" && document.activeElement !== els.searchInput) {
+    if (e.key === "/" && document.activeElement !== els["search-input"]) {
       e.preventDefault();
-      els.searchInput.focus();
+      els["search-input"].focus();
     }
-    if (e.key.toLowerCase() === "n" && !els.modal.open) {
-      openComposer();
-    }
-    if (e.key === "Escape" && els.modal.open) {
-      els.modal.close();
-    }
+    if (e.key.toLowerCase() === "n") openComposer();
   });
 }
 
-function initData() {
-  const storedPosts = localStorage.getItem(STORAGE_KEYS.posts);
-  const storedFilters = localStorage.getItem(STORAGE_KEYS.filters);
-  const storedSaved = localStorage.getItem(STORAGE_KEYS.saved);
+function enterApp() {
+  els.landing.hidden = true;
+  els.app.hidden = false;
+  tryStartMusic();
+}
 
-  state.posts = storedPosts ? JSON.parse(storedPosts) : structuredClone(demoPosts);
-  state.savedPosts = new Set(storedSaved ? JSON.parse(storedSaved) : []);
+function applyConfigToUI() {
+  const c = state.config;
+  els["hero-name"].textContent = c.name;
+  els["hero-dates"].textContent = c.dates;
+  els["hero-summary"].textContent = c.summary;
+  els["hero-welcome"].textContent = c.welcome;
+  els["qr-url"].textContent = c.qrUrl;
+  els["top-title"].textContent = "Ce qu'il nous a laisse vit encore dans chacun de nous.";
 
-  if (!storedPosts) persistPosts();
+  document.documentElement.style.setProperty("--accent", c.accentColor);
 
-  if (storedFilters) {
-    state.filters = { ...state.filters, ...JSON.parse(storedFilters) };
+  if (c.heroPhoto) {
+    els["hero-photo"].src = c.heroPhoto;
+    els["hero-photo"].hidden = false;
+    els["hero-photo-fallback"].hidden = true;
+  } else {
+    els["hero-photo"].hidden = true;
+    els["hero-photo-fallback"].hidden = false;
   }
-  syncFilterInputs();
+
+  syncMusicButtons();
+}
+
+function applyTheme() {
+  document.body.classList.toggle("dark", state.config.theme === "dark");
+  els["theme-toggle"].textContent = state.config.theme === "dark" ? "🌙" : "☀️";
+}
+
+function initAudio() {
+  const audio = els["bg-audio"];
+  audio.src = state.config.musicPath || DEFAULT_CONFIG.musicPath;
+  audio.volume = 0.35;
+  audio.addEventListener("error", () => {
+    console.info("Papa 2.0: fichier musique introuvable (%s)", audio.src);
+  });
+}
+
+function toggleMusic() {
+  state.config.musicEnabled = !state.config.musicEnabled;
+  persistConfig();
+  syncMusicButtons();
+  if (state.config.musicEnabled) tryStartMusic();
+  else els["bg-audio"].pause();
+}
+
+function syncMusicButtons() {
+  const icon = state.config.musicEnabled ? "🔊" : "🔇";
+  els["music-toggle"].textContent = icon;
+  els["music-toggle-landing"].textContent = icon;
+}
+
+function tryStartMusic() {
+  if (!state.config.musicEnabled) return;
+  els["bg-audio"].play().catch(() => {});
 }
 
 function renderAll() {
   renderMemoryDay();
   renderQuickStats();
   renderFeed();
-  renderTimeline();
   renderBook();
-  renderPlaces();
-}
-
-function renderQuickStats() {
-  const locations = new Set(state.posts.map((p) => (p.location || "").trim()).filter(Boolean));
-  const contributors = new Set(state.posts.map((p) => (p.contributor || "Famille").trim()));
-  const totalComments = state.posts.reduce((acc, p) => acc + (p.comments?.length || 0), 0);
-
-  els.quickStats.innerHTML = `
-    <article>
-      <h4>${state.posts.length}</h4>
-      <p>souvenirs deposes</p>
-    </article>
-    <article>
-      <h4>${contributors.size}</h4>
-      <p>voix de la famille</p>
-    </article>
-    <article>
-      <h4>${locations.size}</h4>
-      <p>lieux partages</p>
-    </article>
-    <article>
-      <h4>${totalComments}</h4>
-      <p>messages de soutien</p>
-    </article>
-  `;
 }
 
 function renderStories() {
-  els.storiesList.innerHTML = STORIES.map(
-    (story) => `
-      <button class="story ${state.filters.story === story.toLowerCase() ? "active" : ""}" data-story="${story.toLowerCase()}" aria-label="Filtrer par ${story}">
-        <span class="story-thumb" aria-hidden="true"></span>
-        <span>${story}</span>
-      </button>`
-  ).join("");
+  els["stories-list"].innerHTML = STORIES.map((s) => {
+    const active = state.filters.story === s.toLowerCase();
+    return `<button class="story ${active ? "active" : ""}" data-story="${s.toLowerCase()}">
+      <span class="story-ring"></span>
+      <span>${escapeHtml(s)}</span>
+    </button>`;
+  }).join("");
 
-  els.storiesList.querySelectorAll(".story").forEach((storyBtn) => {
-    storyBtn.addEventListener("click", () => {
-      state.filters.story = storyBtn.dataset.story;
+  els["stories-list"].querySelectorAll(".story").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.filters.story = btn.dataset.story;
       state.filters.chip = "Tous";
+      state.filters.period = "";
       persistFilters();
       renderStories();
+      renderFilterChips();
       renderFeed();
-      setView("feed");
-      scrollToFeed();
+      scrollToSection("#feed-anchor");
     });
   });
 }
 
 function renderFilterChips() {
-  els.filterChips.innerHTML = FILTER_CHIPS.map(
-    (chip) => `<button class="chip ${state.filters.chip === chip ? "active" : ""}" data-chip="${chip}">${chip}</button>`
-  ).join("");
+  els["filter-chips"].innerHTML = FILTER_CHIPS.map((chip) => {
+    const active = state.filters.chip === chip;
+    return `<button class="chip ${active ? "active" : ""}" data-chip="${chip}">${escapeHtml(chip)}</button>`;
+  }).join("");
 
-  els.filterChips.querySelectorAll(".chip").forEach((chipBtn) => {
-    chipBtn.addEventListener("click", () => {
-      state.filters.chip = chipBtn.dataset.chip;
+  els["filter-chips"].querySelectorAll(".chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.filters.chip = btn.dataset.chip;
       state.filters.story = "";
+      state.filters.period = "";
       persistFilters();
-      renderFilterChips();
       renderStories();
+      renderFilterChips();
       renderFeed();
     });
   });
 }
 
+function renderTimeline() {
+  els["timeline-range"].max = String(TIMELINE_PERIODS.length - 1);
+  renderTimelineFocus();
+}
+
+function renderTimelineFocus() {
+  const idx = Number(els["timeline-range"].value || 0);
+  const period = TIMELINE_PERIODS[idx];
+  els["timeline-periods"].innerHTML = TIMELINE_PERIODS.map((p, i) => `<span class="timeline-pill ${i === idx ? "active" : ""}">${escapeHtml(p.label)}</span>`).join("");
+  const samples = state.posts.filter((post) => matchPeriod(post, period.key)).slice(0, 3);
+
+  els["timeline-focus"].innerHTML = `
+    <h4>${escapeHtml(period.label)}</h4>
+    <p>${escapeHtml(period.text)}</p>
+    <div class="timeline-samples">
+      ${samples.length ? samples.map((s) => `<article><strong>${escapeHtml(s.dateLabel)}</strong><p>${escapeHtml(truncate(s.caption, 94))}</p></article>`).join("") : "<p>Aucun souvenir associe pour cette periode.</p>"}
+    </div>
+  `;
+}
+
 function renderMemoryDay() {
-  const today = new Date().toISOString().slice(0, 10);
-  const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.memoryDay) || "null");
-  let post;
-
-  if (stored && stored.date === today) {
-    post = state.posts.find((p) => p.id === stored.postId);
-  }
-
-  if (!post) {
-    post = state.posts[Math.floor(hash(today) % state.posts.length)];
-    localStorage.setItem(STORAGE_KEYS.memoryDay, JSON.stringify({ date: today, postId: post.id }));
-  }
-
-  els.memoryDay.innerHTML = `
+  const date = new Date().toISOString().slice(0, 10);
+  const post = state.posts[hash(date) % state.posts.length];
+  els["memory-day"].innerHTML = `
     <h3>Souvenir du jour</h3>
-    <p><strong>${escapeHtml(post.contributor || "Famille")}</strong> - ${escapeHtml(post.dateLabel)}</p>
-    <p>${truncate(post.caption, 120)}</p>
-    <button class="btn btn-soft btn-sm" id="jump-memory-day">Voir ce souvenir</button>
+    <p><strong>${escapeHtml(post.contributor)}</strong> - ${escapeHtml(post.dateLabel)}</p>
+    <p>${escapeHtml(truncate(post.caption, 120))}</p>
+    <button id="jump-memory" class="btn btn-soft btn-sm">Voir ce souvenir</button>
   `;
 
-  document.getElementById("jump-memory-day").addEventListener("click", () => {
-    setView("feed");
-    renderFeed();
-    const target = document.getElementById(`post-${post.id}`);
-    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  document.getElementById("jump-memory").addEventListener("click", () => {
+    scrollToSection("#feed-anchor");
+    document.getElementById(`post-${post.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
   });
 }
 
-function renderFeed() {
-  renderFilterChips();
-  const posts = getFilteredPosts();
+function renderQuickStats() {
+  const locations = new Set(state.posts.map((p) => p.location).filter(Boolean)).size;
+  const contributors = new Set(state.posts.map((p) => p.contributor).filter(Boolean)).size;
+  const comments = state.posts.reduce((acc, p) => acc + p.comments.length, 0);
+  const likes = state.posts.reduce((acc, p) => acc + reactionTotal(p), 0);
 
-  if (!posts.length) {
-    els.feed.innerHTML = `<article class="card"><p>Aucun souvenir ne correspond a votre recherche.</p></article>`;
-    return;
+  els["quick-stats"].innerHTML = `
+    <article><h4>${state.posts.length}</h4><p>Souvenirs</p></article>
+    <article><h4>${contributors}</h4><p>Contributeurs</p></article>
+    <article><h4>${locations}</h4><p>Lieux</p></article>
+    <article><h4>${comments + likes}</h4><p>Interactions</p></article>
+  `;
+}
+
+function getFilteredPosts() {
+  const typeMap = {
+    Photos: ["photo"],
+    Videos: ["video"],
+    Audio: ["audio"],
+    Textes: ["text"],
+  };
+
+  let list = [...state.posts];
+
+  if (state.filters.search) {
+    const q = state.filters.search;
+    list = list.filter((p) => [p.caption, p.contributor, p.location, p.period, ...(p.tags || [])].join(" ").toLowerCase().includes(q));
   }
 
-  els.feed.innerHTML = posts.map((post) => renderPost(post)).join("");
+  if (state.filters.story) {
+    list = list.filter((p) => (p.tags || []).some((t) => t.includes(state.filters.story)) || p.type.includes(state.filters.story));
+  }
 
-  posts.forEach((post) => bindPostEvents(post));
+  if (state.filters.period) {
+    list = list.filter((p) => matchPeriod(p, state.filters.period));
+  }
+
+  if (state.filters.chip !== "Tous") {
+    if (typeMap[state.filters.chip]) list = list.filter((p) => typeMap[state.filters.chip].includes(p.type));
+    else list = list.filter((p) => (p.tags || []).includes(state.filters.chip.toLowerCase()));
+  }
+
+  if (state.filters.sort === "recent") list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (state.filters.sort === "old") list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  if (state.filters.sort === "loved") list.sort((a, b) => reactionTotal(b) - reactionTotal(a));
+
+  list.sort((a, b) => (a.pinned === b.pinned ? 0 : a.pinned ? -1 : 1));
+  return list;
+}
+
+function renderFeed() {
+  const posts = getFilteredPosts();
+  if (!posts.length) {
+    els.feed.innerHTML = `<article class="post empty">Aucun souvenir ne correspond a votre recherche.</article>`;
+    return;
+  }
+  els.feed.innerHTML = posts.map(renderPost).join("");
+  posts.forEach(bindPostEvents);
 }
 
 function renderPost(post) {
-  const comments = post.comments || [];
-  const showAll = state.expandedComments.has(post.id);
-  const visibleComments = showAll ? comments : comments.slice(-2);
-  const isSaved = state.savedPosts.has(post.id);
+  const media = post.media[0] || { type: "text", title: "Souvenir", url: "", placeholder: true };
+  const comments = post.comments.slice(-2);
+  const saved = state.saved.has(post.id);
 
   return `
     <article class="post" id="post-${post.id}">
-      <header class="post-header">
+      <header class="post-head">
         <div class="author">
-          <span class="avatar">${(post.contributor || "F").slice(0, 1).toUpperCase()}</span>
+          <span class="avatar">${escapeHtml((post.contributor || "F").slice(0, 1).toUpperCase())}</span>
           <div>
             <strong>${escapeHtml(post.contributor || "Famille")}</strong>
             <p>${escapeHtml(post.dateLabel)}${post.location ? ` • ${escapeHtml(post.location)}` : ""}</p>
           </div>
         </div>
-        <span class="post-type">${escapeHtml(post.type)}</span>
+        ${post.pinned ? '<span class="pill">Epingle</span>' : ""}
       </header>
 
-      ${renderCarousel(post)}
+      <div class="post-media ${escapeAttr(media.type)}">${mediaMarkup(media)}</div>
 
       <div class="post-body">
-        <p class="caption" data-caption="${post.id}">${renderCaption(post)}</p>
-        <div class="tags">${(post.tags || []).map((tag) => `<span>#${escapeHtml(tag)}</span>`).join("")}</div>
+        <p class="caption">${escapeHtml(post.caption)}</p>
+        <div class="tags">${post.tags.map((tag) => `<span>#${escapeHtml(tag)}</span>`).join("")}</div>
 
-        <div class="reactions" role="group" aria-label="Reactions">
-          ${REACTIONS.map(
-            (emoji) =>
-              `<button class="reaction-btn" data-post="${post.id}" data-reaction="${emoji}" aria-label="Reaction ${emoji}">${emoji} <span>${post.reactions?.[emoji] || 0}</span></button>`
-          ).join("")}
+        <div class="reactions-row">
+          ${REACTIONS.map((r) => `<button class="reaction-btn" data-react-post="${post.id}" data-r="${r}">${r} <span>${post.reactions[r] || 0}</span></button>`).join("")}
         </div>
 
-        <div class="post-actions-row">
-          <button class="post-action" data-share="${post.id}">Copier le lien</button>
-          <button class="post-action" data-save="${post.id}">${isSaved ? "Retire" : "Sauvegarder"}</button>
+        <div class="actions-row">
+          <button class="post-action" data-share="${post.id}">Partager</button>
+          <button class="post-action" data-save="${post.id}">${saved ? "Enregistre" : "Enregistrer"}</button>
         </div>
 
         <div class="comments">
-          ${visibleComments
-            .map(
-              (c) => `<div class="comment-item"><b>${escapeHtml(c.name || "Anonyme")}</b>${escapeHtml(c.text)}</div>`
-            )
-            .join("")}
-
-          ${comments.length > 2 ? `<button class="post-action" data-toggle-comments="${post.id}">${showAll ? "Replier" : "Voir tous les commentaires"}</button>` : ""}
-
+          ${comments.map((c) => `<p><strong>${escapeHtml(c.name)}</strong> ${escapeHtml(c.text)}</p>`).join("")}
           <form class="comment-form" data-comment-form="${post.id}">
-            <input type="text" name="name" maxlength="24" placeholder="Prenom (optionnel)" aria-label="Prenom" />
-            <input type="text" name="comment" required placeholder="Ecrire un commentaire..." aria-label="Commentaire" />
+            <input name="name" type="text" placeholder="Prenom (optionnel)" maxlength="24" />
+            <input name="comment" type="text" required placeholder="Ecrire un commentaire..." />
             <button class="btn btn-soft btn-sm" type="submit">Publier</button>
           </form>
         </div>
@@ -573,226 +448,518 @@ function renderPost(post) {
   `;
 }
 
-function renderCarousel(post) {
-  const media = post.media?.length ? post.media : [{ type: "text", title: "Souvenir", placeholder: true }];
+function mediaMarkup(media) {
+  if (media.url) {
+    if (media.type === "photo") return `<img src="${media.url}" alt="Media souvenir" />`;
+    if (media.type === "video") return `<video src="${media.url}" controls playsinline></video>`;
+    if (media.type === "audio") return `<audio src="${media.url}" controls></audio>`;
+  }
 
-  return `
-    <div class="media-carousel" data-carousel="${post.id}">
-      ${media
-        .map((m, i) => {
-          const slideClass = mapMediaTypeToClass(m.type);
-          const content = m.url
-            ? mediaNodeForUrl(m)
-            : `<strong>${escapeHtml(m.title || "Souvenir")}</strong>`;
-          return `
-            <div class="slide ${slideClass} ${i === 0 ? "active" : ""}" data-slide="${i}">
-              ${content}
-              ${m.type === "video" ? '<span class="play-overlay" aria-hidden="true">▶</span>' : ""}
-              ${m.type === "audio" ? '<div class="waveform" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>' : ""}
-            </div>
-          `;
-        })
-        .join("")}
-      ${media.length > 1 ? `
-        <div class="carousel-nav">
-          <button data-prev="${post.id}" aria-label="Media precedente">‹</button>
-          <button data-next="${post.id}" aria-label="Media suivante">›</button>
-        </div>
-        <div class="dots">
-          ${media
-            .map(
-              (_, i) => `<button data-dot="${post.id}" data-index="${i}" class="${i === 0 ? "active" : ""}" aria-label="Aller au media ${i + 1}"></button>`
-            )
-            .join("")}
-        </div>`
-      : ""}
-    </div>
-  `;
-}
-
-function mediaNodeForUrl(mediaItem) {
-  if (mediaItem.type === "photo") {
-    return `<img src="${mediaItem.url}" alt="${escapeHtml(mediaItem.title || "photo")}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" />`;
-  }
-  if (mediaItem.type === "video") {
-    return `<video src="${mediaItem.url}" controls style="width:100%;height:100%;object-fit:cover;border-radius:12px;"></video>`;
-  }
-  if (mediaItem.type === "audio") {
-    return `<audio src="${mediaItem.url}" controls style="width:100%;"></audio>`;
-  }
-  return `<strong>${escapeHtml(mediaItem.title || "Souvenir")}</strong>`;
+  if (media.type === "video") return `<div class="placeholder"><span class="play">▶</span><strong>${escapeHtml(media.title)}</strong></div>`;
+  if (media.type === "audio") return `<div class="placeholder"><div class="wave"><span></span><span></span><span></span><span></span></div><strong>${escapeHtml(media.title)}</strong></div>`;
+  return `<div class="placeholder"><strong>${escapeHtml(media.title)}</strong></div>`;
 }
 
 function bindPostEvents(post) {
-  document.querySelectorAll(`[data-post="${post.id}"]`).forEach((btn) => {
+  document.querySelectorAll(`[data-react-post="${post.id}"]`).forEach((btn) => {
     btn.addEventListener("click", () => {
-      const reaction = btn.dataset.reaction;
-      post.reactions[reaction] = (post.reactions[reaction] || 0) + 1;
+      const key = btn.dataset.r;
+      post.reactions[key] = (post.reactions[key] || 0) + 1;
       persistPosts();
-      btn.classList.add("pulse");
-      setTimeout(() => btn.classList.remove("pulse"), 400);
+      btn.classList.add("liked");
+      setTimeout(() => btn.classList.remove("liked"), 360);
       renderFeed();
+      renderQuickStats();
     });
   });
 
-  const shareBtn = document.querySelector(`[data-share="${post.id}"]`);
-  shareBtn?.addEventListener("click", async () => {
-    const url = `${BASE_URL}#post-${post.id}`;
+  const share = document.querySelector(`[data-share="${post.id}"]`);
+  share?.addEventListener("click", async () => {
+    const url = `${window.location.href.split("#")[0]}#post-${post.id}`;
     try {
       await navigator.clipboard.writeText(url);
-      shareBtn.textContent = "Lien copie";
-      setTimeout(() => (shareBtn.textContent = "Copier le lien"), 1200);
+      share.textContent = "Lien copie";
+      setTimeout(() => (share.textContent = "Partager"), 1200);
     } catch {
       window.prompt("Copiez ce lien:", url);
     }
   });
 
-  const saveBtn = document.querySelector(`[data-save="${post.id}"]`);
-  saveBtn?.addEventListener("click", () => {
-    if (state.savedPosts.has(post.id)) {
-      state.savedPosts.delete(post.id);
-    } else {
-      state.savedPosts.add(post.id);
-    }
-    persistSavedPosts();
-    renderFeed();
-  });
-
-  const toggleBtn = document.querySelector(`[data-toggle-comments="${post.id}"]`);
-  toggleBtn?.addEventListener("click", () => {
-    if (state.expandedComments.has(post.id)) {
-      state.expandedComments.delete(post.id);
-    } else {
-      state.expandedComments.add(post.id);
-    }
+  const save = document.querySelector(`[data-save="${post.id}"]`);
+  save?.addEventListener("click", () => {
+    if (state.saved.has(post.id)) state.saved.delete(post.id);
+    else state.saved.add(post.id);
+    persistSaved();
     renderFeed();
   });
 
   const form = document.querySelector(`[data-comment-form="${post.id}"]`);
   form?.addEventListener("submit", (e) => {
     e.preventDefault();
-    const data = new FormData(form);
-    const text = String(data.get("comment") || "").trim();
+    const fd = new FormData(form);
+    const text = String(fd.get("comment") || "").trim();
     if (!text) return;
-    const name = String(data.get("name") || "").trim();
-
-    post.comments = post.comments || [];
-    post.comments.push({
-      id: uid(),
-      name: name || "Famille",
-      text,
-      createdAt: Date.now(),
-    });
-    persistPosts();
-    state.expandedComments.add(post.id);
-    renderFeed();
-  });
-
-  bindCarousel(post.id);
-  bindReadMore(post);
-}
-
-function bindReadMore(post) {
-  const btn = document.querySelector(`[data-read-more="${post.id}"]`);
-  btn?.addEventListener("click", () => {
-    const p = state.posts.find((x) => x.id === post.id);
-    if (!p) return;
-    p.expanded = !p.expanded;
+    const name = String(fd.get("name") || "").trim() || "Famille";
+    post.comments.push({ id: uid("c"), name, text, createdAt: Date.now() });
     persistPosts();
     renderFeed();
+    renderQuickStats();
+    if (state.admin.unlocked) renderAdminComments();
   });
 }
 
-function bindCarousel(postId) {
-  const container = document.querySelector(`[data-carousel="${postId}"]`);
-  if (!container) return;
-
-  let index = 0;
-  const slides = Array.from(container.querySelectorAll(".slide"));
-  const dots = Array.from(container.querySelectorAll("[data-dot]"));
-
-  const setSlide = (next) => {
-    index = (next + slides.length) % slides.length;
-    slides.forEach((s, i) => s.classList.toggle("active", i === index));
-    dots.forEach((d, i) => d.classList.toggle("active", i === index));
-  };
-
-  container.querySelector(`[data-prev="${postId}"]`)?.addEventListener("click", () => setSlide(index - 1));
-  container.querySelector(`[data-next="${postId}"]`)?.addEventListener("click", () => setSlide(index + 1));
-
-  dots.forEach((dot) => {
-    dot.addEventListener("click", () => setSlide(Number(dot.dataset.index)));
-  });
-
-  let touchStartX = 0;
-  container.addEventListener("touchstart", (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-  });
-  container.addEventListener("touchend", (e) => {
-    const diff = e.changedTouches[0].screenX - touchStartX;
-    if (Math.abs(diff) < 30) return;
-    setSlide(diff < 0 ? index + 1 : index - 1);
-  });
+function openComposer() {
+  enterApp();
+  if (!els["composer-modal"].open) els["composer-modal"].showModal();
 }
 
-function handleCreatePost(e) {
+function previewComposer() {
+  const file = els["composer-file"].files?.[0];
+  if (!file) {
+    els["composer-preview"].innerHTML = "";
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+  if (file.type.startsWith("image/")) els["composer-preview"].innerHTML = `<img src="${url}" alt="Apercu" />`;
+  else if (file.type.startsWith("video/")) els["composer-preview"].innerHTML = `<video src="${url}" controls></video>`;
+  else if (file.type.startsWith("audio/")) els["composer-preview"].innerHTML = `<audio src="${url}" controls></audio>`;
+  else els["composer-preview"].textContent = "Fichier selectionne";
+}
+
+async function submitComposer(e) {
   e.preventDefault();
-  const formData = new FormData(els.composerForm);
+  const fd = new FormData(els["composer-form"]);
+  const file = els["composer-file"].files?.[0];
+  const chosenType = String(fd.get("type") || "text");
+
+  let media = [{ type: chosenType, title: "Souvenir", url: "", placeholder: true }];
+  if (file) {
+    const url = await fileToDataUrl(file, 280000);
+    const inferredType = file.type.startsWith("image/") ? "photo" : file.type.startsWith("video/") ? "video" : file.type.startsWith("audio/") ? "audio" : chosenType;
+    media = [{ type: inferredType, title: file.name, url, placeholder: !url }];
+  }
 
   const post = {
     id: uid("p"),
-    type: normalizeType(String(formData.get("type") || "text")),
-    contributor: String(formData.get("contributor") || "").trim() || "Famille",
-    caption: String(formData.get("caption") || "").trim(),
-    dateLabel: String(formData.get("dateLabel") || "").trim() || "Souvenir recent",
+    contributor: String(fd.get("contributor") || "").trim() || "Famille",
+    avatar: "",
+    type: chosenType,
+    caption: String(fd.get("caption") || "").trim(),
+    dateLabel: String(fd.get("dateLabel") || "").trim() || "Souvenir recent",
     createdAt: new Date().toISOString(),
-    location: String(formData.get("location") || "").trim(),
-    tags: String(formData.get("tags") || "")
-      .split(",")
-      .map((t) => t.trim().toLowerCase())
-      .filter(Boolean),
-    media: [],
-    reactions: baseReactions(0),
+    location: String(fd.get("location") || "").trim(),
+    period: String(fd.get("period") || "").trim().toLowerCase(),
+    tags: String(fd.get("tags") || "").split(",").map((t) => t.trim().toLowerCase()).filter(Boolean),
+    media,
+    reactions: Object.fromEntries(REACTIONS.map((r) => [r, 0])),
     comments: [],
     pinned: false,
   };
 
-  const files = [
-    { input: els.composerForm.querySelector('input[name="photo"]')?.files?.[0], type: "photo", title: "Photo locale" },
-    { input: els.composerForm.querySelector('input[name="video"]')?.files?.[0], type: "video", title: "Video locale" },
-    { input: els.composerForm.querySelector('input[name="audio"]')?.files?.[0], type: "audio", title: "Audio local" },
-  ].filter((f) => f.input);
+  state.posts.unshift(post);
+  persistPosts();
+  els["composer-form"].reset();
+  els["composer-preview"].innerHTML = "";
+  els["composer-modal"].close();
+  renderAll();
+  renderMovement();
+}
 
-  Promise.all(files.map((f) => fileToSmallDataUrl(f.input).then((url) => ({ ...f, url })))).then((fileMedia) => {
-    post.media = fileMedia.map((f) => ({
-      type: f.type,
-      title: f.title,
-      url: f.url,
-      placeholder: !Boolean(f.url),
-    }));
+function renderMovement() {
+  const items = state.posts.slice(0, 8);
+  if (!items.length) return;
 
-    if (!post.media.length) {
-      post.media = [{ type: post.type, title: "Souvenir", url: "", placeholder: true }];
+  paintMovement(items);
+  if (state.movement.timer) clearInterval(state.movement.timer);
+
+  state.movement.timer = setInterval(() => {
+    if (!state.movement.paused) {
+      state.movement.idx = (state.movement.idx + 1) % items.length;
+      paintMovement(items);
     }
+  }, 3400);
 
-    state.posts.unshift(post);
-    persistPosts();
-    els.composerForm.reset();
-    els.modal.close();
-    setView("feed");
-    renderAll();
-    scrollToFeed();
+  const root = els["movement-carousel"];
+  root.onmouseenter = () => {
+    state.movement.paused = true;
+  };
+  root.onmouseleave = () => {
+    state.movement.paused = false;
+  };
+
+  let startX = 0;
+  root.ontouchstart = (e) => {
+    startX = e.changedTouches[0].clientX;
+  };
+  root.ontouchend = (e) => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) < 32) return;
+    state.movement.idx = (state.movement.idx + (dx < 0 ? 1 : -1) + items.length) % items.length;
+    paintMovement(items);
+  };
+}
+
+function paintMovement(items) {
+  const len = items.length;
+  els["movement-carousel"].innerHTML = items.map((post, i) => {
+    const rel = ((i - state.movement.idx + len) % len + len) % len;
+    const pos = rel > len / 2 ? rel - len : rel;
+    if (Math.abs(pos) > 2) return "";
+    return `<article class="move-card" style="--pos:${pos}"><h4>${escapeHtml(post.contributor)}</h4><p>${escapeHtml(truncate(post.caption, 78))}</p></article>`;
+  }).join("");
+}
+
+function renderBook() {
+  const chapters = [
+    { title: "Chapitre 1 : Ses debuts", tags: ["enfance", "jeunesse"] },
+    { title: "Chapitre 2 : La famille", tags: ["famille", "mariage", "enfants"] },
+    { title: "Chapitre 3 : Les moments simples", tags: ["fetes", "voyages", "drole", "cuisine"] },
+    { title: "Chapitre 4 : Ce qu'il nous a laisse", tags: ["heritage", "valeurs", "voix"] },
+  ];
+
+  els["book-chapters"].innerHTML = chapters.map((c) => {
+    const rows = state.posts.filter((p) => p.tags.some((t) => c.tags.includes(t))).slice(0, 3);
+    return `<article class="chapter"><h4>${escapeHtml(c.title)}</h4>${rows.length ? `<ul>${rows.map((r) => `<li>${escapeHtml(r.dateLabel)} - ${escapeHtml(truncate(r.caption, 92))}</li>`).join("")}</ul>` : "<p>Aucun souvenir pour ce chapitre.</p>"}</article>`;
+  }).join("");
+}
+
+function generateBookPage() {
+  const picks = getFilteredPosts().slice(0, 5);
+  const dateLabel = new Date().toLocaleDateString("fr-FR", { dateStyle: "long" });
+  els["generated-page"].hidden = false;
+  els["generated-page"].innerHTML = `
+    <h4>Page souvenir - ${escapeHtml(dateLabel)}</h4>
+    <p>Resume imprime localement depuis vos souvenirs.</p>
+    ${picks.map((p) => `<article><h5>${escapeHtml(p.dateLabel)} - ${escapeHtml(p.contributor)}</h5><p>${escapeHtml(p.caption)}</p></article>`).join("")}
+  `;
+  els["generated-page"].scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function openAdminLogin() {
+  els["admin-login-error"].hidden = true;
+  if (!els["admin-login-modal"].open) els["admin-login-modal"].showModal();
+}
+
+function adminLogin(e) {
+  e.preventDefault();
+  const fd = new FormData(els["admin-login-form"]);
+  const user = String(fd.get("username") || "");
+  const pass = String(fd.get("password") || "");
+  if (user !== "rubenz" || pass !== "270792") {
+    els["admin-login-error"].hidden = false;
+    return;
+  }
+
+  state.admin.unlocked = true;
+  els["admin-login-modal"].close();
+  openAdminPanel();
+}
+
+function openAdminPanel() {
+  fillAdminFields();
+  renderAdminPosts();
+  renderAdminComments();
+  if (!els["admin-panel-modal"].open) els["admin-panel-modal"].showModal();
+}
+
+function fillAdminFields() {
+  els["admin-name"].value = state.config.name;
+  els["admin-dates"].value = state.config.dates;
+  els["admin-summary"].value = state.config.summary;
+  els["admin-welcome"].value = state.config.welcome;
+  els["admin-music-path"].value = state.config.musicPath;
+  els["admin-accent"].value = toHex(state.config.accentColor);
+  els["admin-qr-url"].value = state.config.qrUrl;
+}
+
+async function saveAdminConfig() {
+  state.config.name = els["admin-name"].value.trim() || "Papa";
+  state.config.dates = els["admin-dates"].value.trim();
+  state.config.summary = els["admin-summary"].value.trim();
+  state.config.welcome = els["admin-welcome"].value.trim();
+  state.config.musicPath = els["admin-music-path"].value.trim() || DEFAULT_CONFIG.musicPath;
+  state.config.accentColor = els["admin-accent"].value;
+  state.config.qrUrl = els["admin-qr-url"].value.trim() || DEFAULT_CONFIG.qrUrl;
+
+  const file = els["admin-hero-photo"].files?.[0];
+  if (file) state.config.heroPhoto = await fileToDataUrl(file, 300000);
+
+  persistConfig();
+  applyConfigToUI();
+  initAudio();
+  drawQrPlaceholder();
+}
+
+function renderAdminPosts() {
+  els["admin-post-list"].innerHTML = state.posts.map((p) => `<button class="admin-item" data-post-id="${p.id}">${escapeHtml(p.dateLabel)} - ${escapeHtml(truncate(p.caption, 46))}</button>`).join("");
+
+  els["admin-post-list"].querySelectorAll("[data-post-id]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const post = state.posts.find((p) => p.id === btn.dataset.postId);
+      if (!post) return;
+      const f = els["admin-post-form"].elements;
+      f.id.value = post.id;
+      f.contributor.value = post.contributor;
+      f.caption.value = post.caption;
+      f.dateLabel.value = post.dateLabel;
+      f.location.value = post.location;
+      f.period.value = post.period;
+      f.tags.value = post.tags.join(", ");
+      f.pinned.checked = post.pinned;
+    });
   });
 }
 
-function fileToSmallDataUrl(file) {
+function saveAdminPost(e) {
+  e.preventDefault();
+  const f = els["admin-post-form"].elements;
+  const post = state.posts.find((p) => p.id === f.id.value);
+  if (!post) return;
+
+  post.contributor = f.contributor.value.trim() || "Famille";
+  post.caption = f.caption.value.trim();
+  post.dateLabel = f.dateLabel.value.trim();
+  post.location = f.location.value.trim();
+  post.period = f.period.value.trim().toLowerCase();
+  post.tags = f.tags.value.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+  post.pinned = f.pinned.checked;
+
+  persistPosts();
+  renderAll();
+  renderMovement();
+  renderAdminPosts();
+}
+
+function deleteAdminPost() {
+  const id = els["admin-post-form"].elements.id.value;
+  if (!id) return;
+  state.posts = state.posts.filter((p) => p.id !== id);
+  persistPosts();
+  els["admin-post-form"].reset();
+  renderAll();
+  renderMovement();
+  renderAdminPosts();
+  renderAdminComments();
+}
+
+function renderAdminComments() {
+  const rows = [];
+  state.posts.forEach((p) => {
+    p.comments.forEach((c) => rows.push({ postId: p.id, commentId: c.id, postDate: p.dateLabel, name: c.name, text: c.text }));
+  });
+
+  els["admin-comment-list"].innerHTML = rows.map((r) => `
+    <article class="admin-comment">
+      <p><strong>${escapeHtml(r.name)}</strong> · ${escapeHtml(r.postDate)}</p>
+      <p>${escapeHtml(truncate(r.text, 94))}</p>
+      <div class="admin-actions">
+        <button class="btn btn-soft btn-sm" data-edit-comment="${r.commentId}" data-post="${r.postId}">Modifier</button>
+        <button class="btn btn-soft btn-sm danger" data-delete-comment="${r.commentId}" data-post="${r.postId}">Supprimer</button>
+      </div>
+    </article>
+  `).join("");
+
+  els["admin-comment-list"].querySelectorAll("[data-edit-comment]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const post = state.posts.find((p) => p.id === btn.dataset.post);
+      if (!post) return;
+      const comment = post.comments.find((c) => c.id === btn.dataset.editComment);
+      if (!comment) return;
+      const next = window.prompt("Modifier le commentaire:", comment.text);
+      if (next === null) return;
+      comment.text = next.trim();
+      persistPosts();
+      renderFeed();
+      renderQuickStats();
+      renderAdminComments();
+    });
+  });
+
+  els["admin-comment-list"].querySelectorAll("[data-delete-comment]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const post = state.posts.find((p) => p.id === btn.dataset.post);
+      if (!post) return;
+      post.comments = post.comments.filter((c) => c.id !== btn.dataset.deleteComment);
+      persistPosts();
+      renderFeed();
+      renderQuickStats();
+      renderAdminComments();
+    });
+  });
+}
+
+function exportJson() {
+  const data = {
+    exportedAt: new Date().toISOString(),
+    config: state.config,
+    posts: state.posts,
+    filters: state.filters,
+    saved: Array.from(state.saved),
+  };
+  download("papa2-data.json", JSON.stringify(data, null, 2), "application/json");
+}
+
+function importJson(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result || "{}"));
+      if (!Array.isArray(parsed.posts)) throw new Error("invalid");
+      state.posts = parsed.posts;
+      state.config = { ...DEFAULT_CONFIG, ...(parsed.config || {}) };
+      state.filters = { ...state.filters, ...(parsed.filters || {}) };
+      state.saved = new Set(parsed.saved || []);
+      persistAll();
+      syncFilterInputs();
+      applyTheme();
+      applyConfigToUI();
+      initAudio();
+      renderStories();
+      renderFilterChips();
+      renderTimelineFocus();
+      renderAll();
+      renderMovement();
+      drawQrPlaceholder();
+      if (state.admin.unlocked) {
+        fillAdminFields();
+        renderAdminPosts();
+        renderAdminComments();
+      }
+    } catch {
+      window.alert("Import JSON invalide.");
+    }
+  };
+
+  reader.readAsText(file);
+  e.target.value = "";
+}
+
+function resetDemo() {
+  state.posts = demoPosts();
+  state.config = { ...DEFAULT_CONFIG };
+  state.filters = { search: "", chip: "Tous", story: "", sort: "recent", period: "" };
+  state.saved = new Set();
+  persistAll();
+  syncFilterInputs();
+  applyTheme();
+  applyConfigToUI();
+  initAudio();
+  renderStories();
+  renderFilterChips();
+  renderTimelineFocus();
+  renderAll();
+  renderMovement();
+  drawQrPlaceholder();
+}
+
+function drawQrPlaceholder() {
+  const canvas = els["qr-canvas"];
+  const ctx = canvas.getContext("2d");
+  const size = 11;
+  const url = state.config.qrUrl || DEFAULT_CONFIG.qrUrl;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#0d1a2a";
+
+  for (let y = 0; y < 15; y += 1) {
+    for (let x = 0; x < 15; x += 1) {
+      if (hash(`${url}-${x}-${y}`) % 3 === 0) {
+        ctx.fillRect(7 + x * size, 7 + y * size, size - 2, size - 2);
+      }
+    }
+  }
+
+  drawFinder(ctx, 7, 7, size);
+  drawFinder(ctx, 7 + 10 * size, 7, size);
+  drawFinder(ctx, 7, 7 + 10 * size, size);
+}
+
+function drawFinder(ctx, x, y, s) {
+  ctx.fillRect(x, y, s * 3, s * 3);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(x + s, y + s, s, s);
+  ctx.fillStyle = "#0d1a2a";
+}
+
+function jumpFromHash() {
+  if (!window.location.hash.startsWith("#post-")) return;
+  enterApp();
+  scrollToSection("#feed-anchor");
+  document.querySelector(window.location.hash)?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function showSkeletons() {
+  const tpl = document.getElementById("skeleton-template");
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < 3; i += 1) frag.appendChild(tpl.content.cloneNode(true));
+  els.feed.innerHTML = "";
+  els.feed.appendChild(frag);
+}
+
+function scrollToSection(selector) {
+  document.querySelector(selector)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function syncFilterInputs() {
+  els["search-input"].value = state.filters.search || "";
+  els["sort-select"].value = state.filters.sort || "recent";
+}
+
+function matchPeriod(post, key) {
+  if ((post.period || "").includes(key)) return true;
+  if ((post.tags || []).includes(key)) return true;
+  if (key === "naissance") return (post.tags || []).includes("enfants");
+  return false;
+}
+
+function reactionTotal(post) {
+  return REACTIONS.reduce((acc, r) => acc + Number(post.reactions[r] || 0), 0);
+}
+
+function persistAll() {
+  persistPosts();
+  persistConfig();
+  persistFilters();
+  persistSaved();
+}
+
+function persistPosts() {
+  localStorage.setItem(STORAGE_KEYS.posts, JSON.stringify(state.posts));
+}
+
+function persistConfig() {
+  localStorage.setItem(STORAGE_KEYS.config, JSON.stringify(state.config));
+}
+
+function persistFilters() {
+  localStorage.setItem(STORAGE_KEYS.filters, JSON.stringify(state.filters));
+}
+
+function persistSaved() {
+  localStorage.setItem(STORAGE_KEYS.saved, JSON.stringify(Array.from(state.saved)));
+}
+
+function loadJson(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function fileToDataUrl(file, maxBytes) {
   return new Promise((resolve) => {
-    const maxBytes = 180000;
     if (file.size > maxBytes) {
       resolve("");
       return;
     }
-
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
     reader.onerror = () => resolve("");
@@ -800,390 +967,23 @@ function fileToSmallDataUrl(file) {
   });
 }
 
-function renderTimeline() {
-  els.timelineEvents.innerHTML = TIMELINE_EVENTS.map(
-    (eventName) => `
-      <article class="timeline-item" data-timeline="${eventName.toLowerCase()}">
-        <h4>${eventName}</h4>
-        <p>Explorer les souvenirs relies a cette periode.</p>
-      </article>
-    `
-  ).join("");
-
-  els.timelineEvents.querySelectorAll(".timeline-item").forEach((item) => {
-    item.addEventListener("click", () => {
-      state.filters.timeline = item.dataset.timeline;
-      state.filters.search = "";
-      persistFilters();
-      setView("feed");
-      renderFeed();
-      scrollToFeed();
-    });
-  });
-}
-
-function renderBook() {
-  const chapters = [
-    { title: "Chapitre 1: Ses debuts", match: ["naissance", "enfance", "jeunesse"] },
-    { title: "Chapitre 2: La famille", match: ["famille", "mariage", "enfants"] },
-    { title: "Chapitre 3: Les moments simples", match: ["cuisine", "fetes", "drole"] },
-    { title: "Chapitre 4: Ce qu'il nous a laisse", match: ["heritage", "transmission", "valeurs"] },
-  ];
-
-  els.bookChapters.innerHTML = chapters
-    .map((chapter) => {
-      const matches = state.posts.filter((post) => post.tags?.some((tag) => chapter.match.includes(tag))).slice(0, 3);
-      return `
-        <article class="chapter">
-          <h4>${chapter.title}</h4>
-          ${matches.length
-            ? `<ul>${matches.map((m) => `<li>${escapeHtml(m.dateLabel)} - ${escapeHtml(truncate(m.caption, 90))}</li>`).join("")}</ul>`
-            : "<p>Aucun souvenir classe pour ce chapitre.</p>"}
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function generateMemoryPage() {
-  const candidates = getFilteredPosts().slice(0, 4);
-  const selected = candidates.length ? candidates : state.posts.slice(0, 4);
-  const todayLabel = new Date().toLocaleDateString("fr-FR", { dateStyle: "long" });
-
-  els.generatedPage.hidden = false;
-  els.generatedPage.innerHTML = `
-    <h4>Page souvenir - ${todayLabel}</h4>
-    <p>Un recueil cree sur cet appareil, a partager et imprimer.</p>
-    ${selected
-      .map(
-        (post) => `
-        <article>
-          <h5>${escapeHtml(post.dateLabel)} - ${escapeHtml(post.contributor || "Famille")}</h5>
-          <p>${escapeHtml(post.caption)}</p>
-        </article>
-      `
-      )
-      .join("")}
-  `;
-
-  els.generatedPage.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function renderPlaces() {
-  const locationMap = {};
-  state.posts.forEach((post) => {
-    const key = post.location?.trim() || "Lieu non precise";
-    locationMap[key] = (locationMap[key] || 0) + 1;
-  });
-
-  const locations = Object.entries(locationMap).sort((a, b) => b[1] - a[1]);
-
-  els.placesGrid.innerHTML = locations
-    .map(
-      ([location, count]) => `
-      <article class="place-card" data-location="${escapeAttr(location.toLowerCase())}">
-        <h4>${escapeHtml(location)}</h4>
-        <p>${count} souvenir(s)</p>
-      </article>
-    `
-    )
-    .join("");
-
-  els.placesGrid.querySelectorAll(".place-card").forEach((card) => {
-    card.addEventListener("click", () => {
-      state.filters.location = card.dataset.location;
-      persistFilters();
-      setView("feed");
-      renderFeed();
-      scrollToFeed();
-    });
-  });
-}
-
-function renderSampleRemembrance() {
-  const remembrance = state.posts.find((p) => p.type === "anniversary") || state.posts[0];
-  els.sampleRemembrance.innerHTML = `
-    <strong>Publication de recueillement</strong>
-    <p>${escapeHtml(remembrance.caption)}</p>
-  `;
-}
-
-function setView(view) {
-  state.activeView = view;
-
-  document.querySelectorAll("[data-view-panel]").forEach((panel) => {
-    const active = panel.dataset.viewPanel === view;
-    panel.hidden = !active;
-    panel.classList.toggle("panel-active", active);
-  });
-
-  document.querySelectorAll(".nav-item[data-view]").forEach((item) => {
-    item.classList.toggle("active", item.dataset.view === view);
-  });
-
-  document.querySelectorAll(".bottom-nav-item[data-view]").forEach((item) => {
-    item.classList.toggle("active", item.dataset.view === view);
-  });
-}
-
-function handleHashNavigation() {
-  if (!window.location.hash.startsWith("#post-")) return;
-  const target = document.querySelector(window.location.hash);
-  if (!target) return;
-  if (els.app.hidden) {
-    els.landing.hidden = true;
-    els.app.hidden = false;
-  }
-  setView("feed");
-  target.scrollIntoView({ behavior: "smooth", block: "center" });
-}
-
-function getFilteredPosts() {
-  const chipMap = {
-    Photos: ["photo"],
-    Videos: ["video"],
-    Audio: ["audio"],
-    Textes: ["text", "histoire", "quote"],
-  };
-
-  let posts = [...state.posts];
-
-  if (state.filters.search) {
-    const q = state.filters.search;
-    posts = posts.filter((post) => {
-      const haystack = [
-        post.caption,
-        post.contributor,
-        post.location,
-        post.type,
-        ...(post.tags || []),
-      ]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(q);
-    });
-  }
-
-  if (state.filters.chip !== "Tous") {
-    if (chipMap[state.filters.chip]) {
-      posts = posts.filter((post) => chipMap[state.filters.chip].includes(post.type));
-    } else {
-      posts = posts.filter((post) => post.tags?.includes(state.filters.chip.toLowerCase()));
-    }
-  }
-
-  if (state.filters.story) {
-    posts = posts.filter((post) => {
-      const target = state.filters.story;
-      const tags = (post.tags || []).map((t) => t.toLowerCase());
-      return tags.some((tag) => tag.includes(target)) || post.type.toLowerCase().includes(target);
-    });
-  }
-
-  if (state.filters.timeline) {
-    const keywords = TIMELINE_KEYWORDS[state.filters.timeline] || [state.filters.timeline];
-    posts = posts.filter((post) => {
-      const corpus = `${post.caption} ${(post.tags || []).join(" ")}`.toLowerCase();
-      return keywords.some((kw) => corpus.includes(kw));
-    });
-  }
-
-  if (state.filters.location) {
-    posts = posts.filter((post) => (post.location || "").toLowerCase().includes(state.filters.location));
-  }
-
-  if (state.filters.sort === "recent") {
-    posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  } else if (state.filters.sort === "old") {
-    posts.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  } else {
-    posts.sort((a, b) => totalReactions(b) - totalReactions(a));
-  }
-
-  return posts;
-}
-
-function openComposer() {
-  if (!els.modal.open) {
-    els.modal.showModal();
-  }
-}
-
-function toggleTheme() {
-  const next = document.body.classList.toggle("dark");
-  localStorage.setItem(STORAGE_KEYS.theme, next ? "dark" : "light");
-  els.themeToggle.textContent = next ? "🌙" : "☀️";
-}
-
-function loadTheme() {
-  const theme = localStorage.getItem(STORAGE_KEYS.theme);
-  if (theme === "dark") {
-    document.body.classList.add("dark");
-    els.themeToggle.textContent = "🌙";
-  } else {
-    document.body.classList.remove("dark");
-    els.themeToggle.textContent = "☀️";
-  }
-}
-
-function exportPostsJson() {
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    posts: state.posts,
-  };
-
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+function download(name, content, mime) {
+  const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "papa2-memories.json";
+  a.download = name;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-function importPostsJson(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const parsed = JSON.parse(String(reader.result || "{}"));
-      if (!Array.isArray(parsed.posts)) throw new Error("Invalid format");
-      state.posts = parsed.posts;
-      persistPosts();
-      renderAll();
-    } catch {
-      alert("Import impossible: fichier JSON invalide.");
-    }
-  };
-  reader.readAsText(file);
-  e.target.value = "";
-}
-
-function resetDemoData() {
-  state.posts = structuredClone(demoPosts);
-  state.savedPosts = new Set();
-  state.expandedComments.clear();
-  state.filters = {
-    search: "",
-    chip: "Tous",
-    sort: "recent",
-    story: "",
-    timeline: "",
-    location: "",
-  };
-  persistPosts();
-  persistSavedPosts();
-  persistFilters();
-  syncFilterInputs();
-  renderAll();
-}
-
-function drawQrPlaceholder() {
-  const canvas = els.qrCanvas;
-  const ctx = canvas.getContext("2d");
-  const size = 12;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#111";
-
-  for (let y = 0; y < 15; y += 1) {
-    for (let x = 0; x < 15; x += 1) {
-      const v = hash(`${BASE_URL}-${x}-${y}`) % 3;
-      if (v === 0) {
-        ctx.fillRect(8 + x * size, 8 + y * size, size - 2, size - 2);
-      }
-    }
-  }
-
-  drawFinder(ctx, 8, 8, size);
-  drawFinder(ctx, 8 + 10 * size, 8, size);
-  drawFinder(ctx, 8, 8 + 10 * size, size);
-}
-
-function drawFinder(ctx, x, y, step) {
-  ctx.fillRect(x, y, step * 3, step * 3);
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(x + step, y + step, step, step);
-  ctx.fillStyle = "#111";
-}
-
-function showSkeletons() {
-  const tpl = document.getElementById("skeleton-template");
-  const frag = document.createDocumentFragment();
-  for (let i = 0; i < 3; i += 1) {
-    frag.appendChild(tpl.content.cloneNode(true));
-  }
-  els.feed.innerHTML = "";
-  els.feed.appendChild(frag);
-}
-
-function renderCaption(post) {
-  const text = post.caption || "";
-  if (text.length <= 150) return escapeHtml(text);
-  if (post.expanded) {
-    return `${escapeHtml(text)} <button class="more-btn" data-read-more="${post.id}">voir moins</button>`;
-  }
-  return `${escapeHtml(text.slice(0, 150))}... <button class="more-btn" data-read-more="${post.id}">voir plus</button>`;
-}
-
-function mapMediaTypeToClass(type) {
-  if (["photo", "video", "audio", "document", "text", "mixed"].includes(type)) return type;
-  if (type === "quote" || type === "histoire") return "text";
-  return "mixed";
-}
-
-function normalizeType(type) {
-  if (type === "video" || type === "audio" || type === "photo") return type;
-  if (type === "texte") return "text";
-  if (type === "histoire") return "histoire";
-  if (type === "lieu") return "text";
-  return "text";
-}
-
-function scrollToFeed() {
-  document.getElementById("feed-view")?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function syncFilterInputs() {
-  els.searchInput.value = state.filters.search || "";
-  els.sortSelect.value = state.filters.sort || "recent";
-}
-
-function persistPosts() {
-  localStorage.setItem(STORAGE_KEYS.posts, JSON.stringify(state.posts));
-}
-
-function persistFilters() {
-  localStorage.setItem(STORAGE_KEYS.filters, JSON.stringify(state.filters));
-}
-
-function persistSavedPosts() {
-  localStorage.setItem(STORAGE_KEYS.saved, JSON.stringify(Array.from(state.savedPosts)));
-}
-
-function baseReactions(seed) {
-  return {
-    "❤️": seed,
-    "🕯️": Math.floor(seed / 4),
-    "🙏": Math.floor(seed / 3),
-    "🤍": Math.floor(seed / 5),
-    "😂": Math.floor(seed / 6),
-    "😢": Math.floor(seed / 7),
-  };
-}
-
-function totalReactions(post) {
-  return REACTIONS.reduce((acc, r) => acc + Number(post.reactions?.[r] || 0), 0);
+function uid(prefix = "id") {
+  return `${prefix}-${Math.random().toString(36).slice(2, 9)}-${Date.now().toString(36).slice(-4)}`;
 }
 
 function truncate(text, max) {
-  return text.length > max ? `${text.slice(0, max - 1)}...` : text;
-}
-
-function uid(prefix = "id") {
-  return `${prefix}-${Math.random().toString(36).slice(2, 9)}-${Date.now().toString(36).slice(-4)}`;
+  const t = String(text || "");
+  return t.length > max ? `${t.slice(0, max - 1)}...` : t;
 }
 
 function hash(str) {
@@ -1195,8 +995,12 @@ function hash(str) {
   return Math.abs(h);
 }
 
-function escapeHtml(value) {
-  return String(value || "")
+function toHex(color) {
+  return /^#[0-9A-Fa-f]{6}$/.test(color) ? color : DEFAULT_CONFIG.accentColor;
+}
+
+function escapeHtml(v) {
+  return String(v || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -1204,6 +1008,32 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function escapeAttr(value) {
-  return String(value || "").replace(/"/g, "&quot;");
+function escapeAttr(v) {
+  return String(v || "").replace(/"/g, "&quot;");
+}
+
+function demoPosts() {
+  const make = (i, input) => ({
+    id: `p${i}`,
+    avatar: "",
+    reactions: { "❤️": 8 + i, "🕯️": 2 + (i % 4), "🙏": 4 + (i % 3), "🤍": 2 + (i % 2), "😂": i % 5, "😢": 1 + (i % 3) },
+    comments: [],
+    pinned: i === 10 || i === 12,
+    ...input,
+  });
+
+  return [
+    make(1, { contributor: "Lina", type: "photo", caption: "Photo de famille autour de la table. Son regard disait: prenez le temps d'etre ensemble.", dateLabel: "Printemps 1994", createdAt: "1994-04-12T10:00:00Z", location: "Lyon", period: "enfance", tags: ["famille", "enfance"], media: [{ type: "photo", title: "Table du dimanche", url: "", placeholder: true }] }),
+    make(2, { contributor: "Samir", type: "text", caption: "Souvenir drole: il cachait les desserts pour les invites, puis oubliait ou.", dateLabel: "Hiver 2001", createdAt: "2001-12-09T11:00:00Z", location: "Grenoble", period: "famille", tags: ["drole", "fetes"], media: [{ type: "text", title: "Anecdote", url: "", placeholder: true }] }),
+    make(3, { contributor: "Ines", type: "photo", caption: "Voyage en bord de mer. Il ramassait les coquillages comme des tresors.", dateLabel: "Ete 1998", createdAt: "1998-08-18T09:00:00Z", location: "Sete", period: "voyages", tags: ["voyages", "famille"], media: [{ type: "photo", title: "Coquillages", url: "", placeholder: true }] }),
+    make(4, { contributor: "Nadia", type: "photo", caption: "Fete familiale. Les bougies, les voix, et sa facon de remercier chacun.", dateLabel: "Juin 2012", createdAt: "2012-06-15T20:00:00Z", location: "Montpellier", period: "famille", tags: ["fetes", "famille"], media: [{ type: "photo", title: "Fete familiale", url: "", placeholder: true }] }),
+    make(5, { contributor: "Karim", type: "audio", caption: "Message vocal retrouve: \"Rentrez bien, je vous attends.\"", dateLabel: "2006", createdAt: "2006-10-11T08:00:00Z", location: "Paris", period: "famille", tags: ["voix", "heritage"], media: [{ type: "audio", title: "Voix du soir", url: "", placeholder: true }] }),
+    make(6, { contributor: "Famille", type: "video", caption: "Ancienne video numerisee: il nous apprend a faire du velo avec une patience infinie.", dateLabel: "Ete 1991", createdAt: "1991-07-15T18:00:00Z", location: "Valence", period: "enfance", tags: ["videos", "enfance"], media: [{ type: "video", title: "Lecon de velo", url: "", placeholder: true }] }),
+    make(7, { contributor: "Lea", type: "text", caption: "Sa recette de poivrons farcis: gouter, corriger, rire, recommencer.", dateLabel: "Mai 2011", createdAt: "2011-05-02T09:00:00Z", location: "Lyon", period: "famille", tags: ["cuisine", "famille"], media: [{ type: "text", title: "Recette", url: "", placeholder: true }] }),
+    make(8, { contributor: "Maya", type: "text", caption: "Sa valeur transmise: la douceur n'est pas une faiblesse, c'est une force.", dateLabel: "Transmission", createdAt: "2015-03-03T13:00:00Z", location: "Lyon", period: "heritage", tags: ["heritage", "valeurs"], media: [{ type: "text", title: "Valeur", url: "", placeholder: true }] }),
+    make(9, { contributor: "Rami", type: "photo", caption: "Lettre retrouvee dans un vieux livre. Une ecriture qui rassure encore.", dateLabel: "1987", createdAt: "1987-11-21T10:00:00Z", location: "Oran", period: "jeunesse", tags: ["heritage", "lettre"], media: [{ type: "photo", title: "Lettre", url: "", placeholder: true }] }),
+    make(10, { contributor: "Nora", type: "text", caption: "Mon souvenir d'enfant: ses grandes mains reparaient les jouets et les coeurs.", dateLabel: "1996", createdAt: "1996-02-14T16:00:00Z", location: "Lyon", period: "enfance", tags: ["enfance", "famille"], media: [{ type: "text", title: "Souvenir d'enfant", url: "", placeholder: true }] }),
+    make(11, { contributor: "Famille", type: "photo", caption: "Post anniversaire: une bougie pour ce qui continue de vivre grace a lui.", dateLabel: "Date anniversaire", createdAt: "2025-06-18T08:00:00Z", location: "Maison familiale", period: "heritage", tags: ["fetes", "souvenir", "famille"], media: [{ type: "photo", title: "Bougie", url: "", placeholder: true }] }),
+    make(12, { contributor: "Famille", type: "text", caption: "Ce qu'il nous a laisse: la facon d'accueillir, de transmettre et de tenir ensemble.", dateLabel: "Aujourd'hui", createdAt: "2026-01-08T09:30:00Z", location: "Partout avec nous", period: "heritage", tags: ["heritage", "valeurs", "famille"], media: [{ type: "text", title: "Ce qu'il nous a laisse", url: "", placeholder: true }] }),
+  ];
 }

@@ -1,84 +1,83 @@
 # Papa 2.0
 
-Application web statique emotionnelle pour creer un mur collectif de souvenirs autour de Papa.
+Papa 2.0 est une application web statique premium, emotionnelle et mobile-first pour conserver les souvenirs de Papa.
 
-Site cible GitHub Pages:
+URL cible GitHub Pages:
 https://rubenzerbib.github.io/papa-2.0/
-
-## Fonctionnalites
-
-- Landing plein ecran cinematographique
-- Mur de souvenirs style reseau social (cartes, reactions, commentaires, carousel)
-- Stories permanentes pour filtrer les collections
-- Ajout de souvenir via modal/bottom-sheet mobile
-- Sauvegarde locale via localStorage (posts, commentaires, reactions, filtres, theme)
-- Recherche, filtres, tri et navigation par timeline
-- Mode Livre vivant avec generation d'une page souvenir
-- Mode Lieux sans API carte externe (cartes de lieux + filtrage)
-- Souvenir du jour persistant par date
-- Outils locaux: export/import JSON, reset demo, impression, placeholder QR
-
-## Fichiers
-
-- index.html
-- styles.css
-- app.js
-- README.md
 
 ## Lancer en local
 
-Option simple:
+Option directe:
 
-1. Ouvrir index.html dans un navigateur.
+1. Ouvrir index.html dans le navigateur.
 
-Option recommandee (eviter certaines restrictions locales navigateur):
+Option recommandee:
 
-1. Depuis la racine du projet, lancer un serveur statique.
-2. Exemple avec Python:
+1. Depuis la racine du projet:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-3. Ouvrir http://localhost:8080
+2. Ouvrir http://localhost:8080
 
-## Deployer sur GitHub Pages
+## Publier sur GitHub Pages
 
-1. Pousser le projet sur le depot papa-2.0, branche main.
-2. Dans GitHub: Settings > Pages.
+1. Push sur la branche main.
+2. GitHub > Settings > Pages.
 3. Source: Deploy from a branch.
-4. Branch: main, dossier: / (root).
-5. URL attendue:
-	https://rubenzerbib.github.io/papa-2.0/
+4. Branch: main, dossier root (/).
+5. URL:
+	 https://rubenzerbib.github.io/papa-2.0/
 
-## Mettre a jour l'URL
+## Remplacer les photos et medias
 
-L'URL publique est referencee dans app.js via la constante BASE_URL.
+- Landing:
+	passer par le portail admin local pour modifier la photo principale.
+- Posts:
+	utiliser "Raconter un souvenir" puis upload local.
+- Les medias sont sauvegardes en dataURL localStorage si leur taille est raisonnable.
 
-1. Ouvrir app.js.
-2. Modifier BASE_URL avec la nouvelle URL GitHub Pages du projet.
-3. Conserver le slash final.
+## Ajouter la musique de fond
 
-## Limites actuelles (version statique)
+1. Creer le fichier: assets/music/background.mp3
+2. Le lecteur charge ce chemin par defaut.
+3. Si le fichier est absent, une note apparait uniquement dans la console.
 
-- Pas de compte ni connexion.
-- Pas de backend, donc pas de synchronisation entre appareils.
-- Les souvenirs ajoutes sont stockes en localStorage sur cet appareil uniquement.
-- Les fichiers uploades sont convertis en data URL uniquement s'ils sont petits (pour limiter le stockage local).
-- En cas de vidage des donnees navigateur, les souvenirs locaux peuvent etre perdus.
+## Portail admin local
 
-## Evolution backend proposee
+- Acces discret:
+	clic sur le point discret en bas a droite,
+	ou 5 clics sur le titre Papa 2.0.
+- Identifiant: rubenz
+- Mot de passe: 270792
 
-- Supabase Storage + Database pour synchroniser medias, posts, commentaires et reactions.
-- File de moderation avant publication.
-- Lien d'acces familial partage (invitation privee).
-- Upload media robuste (compression, taille, formats, metadata).
-- Backups automatiques et export archive regulier.
+Important:
+Ce portail n'est pas une vraie securite serveur. C'est un verrouillage local d'interface seulement.
 
-## Message d'intention
+## Donnees locales et limites
 
-Papa 2.0 est pense comme un espace collectif, respectueux et humain:
+- Toute la persistance se fait en localStorage:
+	posts, commentaires, reactions, likes, contenus admin, preference musique.
+- Donnees locales limitees a l'appareil/navigateur.
+- Pas de synchronisation multi-utilisateur dans cette version.
+- Si le localStorage est vide/nettoye, les donnees peuvent etre perdues.
 
-- Ici, chacun peut deposer un morceau de son histoire.
-- Un souvenir n'a pas besoin d'etre parfait pour etre precieux.
-- Ce mur appartient a la famille.
+## Fonctionnalites principales
+
+- Landing immersive editable (nom, dates, resume, phrase d'accueil, photo)
+- Feed style Instagram familial avec reactions, commentaires, partage, enregistrement
+- Stories de filtre
+- Timeline vivante avec slider horizontal et carte de periode
+- Zone Souvenirs en mouvement avec carrousel auto + swipe mobile
+- Livre vivant avec page souvenir imprimable
+- QR placeholder configurable
+- Dashboard admin local: edition landing, posts, commentaires, export/import/reset
+
+## Prochaines etapes recommandees
+
+- Supabase Database pour une vraie base de donnees collaborative
+- Supabase Storage pour photos, videos, audio
+- Acces familial via lien prive et roles
+- Moderation des souvenirs avant publication
+- Sauvegardes automatiques et restauration
