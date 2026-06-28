@@ -35,9 +35,13 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  font-family: "Segoe UI", "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-family: "Heebo", "Assistant", "Segoe UI", "SF Pro Text", "Helvetica Neue", sans-serif;
   color: var(--text);
   background: var(--bg);
+}
+
+body.rtl {
+  direction: rtl;
 }
 
 h1,
@@ -851,6 +855,11 @@ input[type="password"] {
   cursor: pointer;
 }
 
+body.rtl .admin-item,
+body.rtl .nav-link {
+  text-align: right;
+}
+
 .admin-item small {
   display: block;
   margin-top: 0.18rem;
@@ -960,8 +969,10 @@ input[type="password"] {
     display: grid;
     gap: 0.4rem;
     position: sticky;
-    top: 0.7rem;
+    top: 6rem;
     align-self: start;
+    max-height: calc(100dvh - 6.6rem);
+    overflow-y: auto;
     border-radius: var(--radius-lg);
     padding: 0.5rem;
   }
@@ -997,6 +1008,12 @@ input[type="password"] {
   .modal {
     margin: auto;
     border-radius: var(--radius-xl);
+  }
+
+  body.rtl .topbar,
+  body.rtl .post-head,
+  body.rtl .author {
+    direction: rtl;
   }
 }
 

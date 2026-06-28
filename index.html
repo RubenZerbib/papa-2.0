@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,14 +18,15 @@
           <img id="hero-photo" alt="Portrait de Papa" />
           <div id="hero-photo-fallback" class="hero-photo-fallback" aria-hidden="true">Papa</div>
         </div>
-        <p class="kicker">Bienvenue dans les souvenirs de Papa.</p>
+        <p class="kicker" data-i18n="landing.kicker">Bienvenue dans les souvenirs de Papa.</p>
         <h1 id="hero-name">Papa</h1>
         <p id="hero-dates" class="hero-dates">19 mars 1955 - 13 decembre 2022</p>
         <p id="hero-summary" class="hero-summary">Une vie de transmission, de douceur et de force.</p>
         <p id="hero-welcome" class="hero-welcome">Un mur commun, construit par ceux qui l'aiment.</p>
         <div class="landing-actions">
-          <button id="enter-btn" class="btn btn-primary">Entrer dans ses souvenirs</button>
-          <button id="open-composer-from-landing" class="btn btn-soft">Raconter un souvenir</button>
+          <button id="enter-btn" class="btn btn-primary" data-i18n="landing.enter">Entrer dans ses souvenirs</button>
+          <button id="open-composer-from-landing" class="btn btn-soft" data-i18n="landing.share">Raconter un souvenir</button>
+          <button id="language-toggle-landing" class="btn btn-soft" data-i18n="lang.toggle">FR / עברית</button>
         </div>
       </div>
       <button id="music-toggle-landing" class="music-toggle" aria-label="Activer ou couper la musique">🔊</button>
@@ -39,6 +40,7 @@
           <p class="subtext">Chaque souvenir ajoute ici prolonge son histoire.</p>
         </div>
         <div class="top-actions">
+          <button id="language-toggle" class="btn btn-soft btn-sm" data-i18n="lang.toggle">FR / עברית</button>
           <button id="open-admin-top" class="btn btn-soft btn-sm" aria-label="Ouvrir l'espace admin">Admin</button>
           <button id="music-toggle" class="icon-btn" aria-label="Activer ou couper la musique">🔊</button>
           <button id="theme-toggle" class="icon-btn" aria-label="Changer de thème">☀️</button>
@@ -46,11 +48,11 @@
       </header>
 
       <nav class="desktop-nav glass" aria-label="Navigation desktop">
-        <button class="nav-link active" data-scroll="#landing-anchor">Accueil</button>
-        <button class="nav-link" data-scroll="#feed-anchor">Mur</button>
-        <button class="nav-link" data-scroll="#timeline-anchor">Timeline</button>
-        <button class="nav-link" data-scroll="#movement-anchor">Moments</button>
-        <button class="nav-link" data-scroll="#book-anchor">Livre vivant</button>
+        <button class="nav-link active" data-scroll="#landing-anchor" data-i18n="nav.home">Accueil</button>
+        <button class="nav-link" data-scroll="#feed-anchor" data-i18n="nav.wall">Mur</button>
+        <button class="nav-link" data-scroll="#timeline-anchor" data-i18n="nav.timeline">Timeline</button>
+        <button class="nav-link" data-scroll="#movement-anchor" data-i18n="nav.moments">Moments</button>
+        <button class="nav-link" data-scroll="#book-anchor" data-i18n="nav.book">Livre vivant</button>
       </nav>
 
       <main class="content">
@@ -65,57 +67,57 @@
         <section id="quick-stats" class="card glass quick-stats"></section>
 
         <section class="stories card glass" aria-label="Stories familiales">
-          <h3>Stories</h3>
+          <h3 data-i18n="stories.title">Stories</h3>
           <div id="stories-list" class="stories-list"></div>
         </section>
 
         <section class="controls card glass" aria-label="Recherche et filtres">
           <div class="controls-row">
-            <input id="search-input" type="search" placeholder="Rechercher un souvenir, un lieu, un tag..." aria-label="Rechercher" />
+            <input id="search-input" type="search" placeholder="Rechercher un souvenir, un lieu, un tag..." data-i18n-placeholder="search.placeholder" aria-label="Rechercher" />
             <select id="sort-select" aria-label="Tri">
-              <option value="recent">Plus recents</option>
-              <option value="old">Plus anciens</option>
-              <option value="loved">Les plus aimes</option>
+              <option value="recent" data-i18n="sort.recent">Plus recents</option>
+              <option value="old" data-i18n="sort.old">Plus anciens</option>
+              <option value="loved" data-i18n="sort.loved">Les plus aimes</option>
             </select>
           </div>
           <div id="filter-chips" class="chips"></div>
-          <button id="clear-filters" class="btn btn-soft btn-sm">Effacer les filtres</button>
+          <button id="clear-filters" class="btn btn-soft btn-sm" data-i18n="filters.clear">Effacer les filtres</button>
         </section>
 
         <section id="timeline-anchor" class="timeline-living card glass">
           <div class="timeline-head">
-            <h3>Timeline vivante</h3>
-            <p>Faites glisser pour traverser les grandes periodes de sa vie.</p>
+            <h3 data-i18n="timeline.title">Timeline vivante</h3>
+            <p data-i18n="timeline.subtitle">Faites glisser pour traverser les grandes periodes de sa vie.</p>
           </div>
           <input id="timeline-range" type="range" min="0" max="6" value="0" step="1" aria-label="Choisir une periode" />
           <div class="timeline-periods" id="timeline-periods"></div>
           <article id="timeline-focus" class="timeline-focus"></article>
-          <button id="timeline-filter-btn" class="btn btn-soft btn-sm">Voir les souvenirs de cette periode</button>
+          <button id="timeline-filter-btn" class="btn btn-soft btn-sm" data-i18n="timeline.filter">Voir les souvenirs de cette periode</button>
         </section>
 
         <section id="movement-anchor" class="movement card glass">
           <div class="movement-head">
-            <h3>Souvenirs en mouvement</h3>
-            <p>Une respiration visuelle qui fait vivre le mur.</p>
+            <h3 data-i18n="movement.title">Souvenirs en mouvement</h3>
+            <p data-i18n="movement.subtitle">Une respiration visuelle qui fait vivre le mur.</p>
           </div>
           <div id="movement-carousel" class="movement-carousel"></div>
         </section>
 
         <section id="feed-anchor" class="feed-wrap">
-          <h3 class="section-title">Mur des souvenirs</h3>
+          <h3 class="section-title" data-i18n="feed.title">Mur des souvenirs</h3>
           <section id="feed" class="feed" aria-live="polite"></section>
         </section>
 
         <section id="book-anchor" class="book card glass">
-          <h3>Livre vivant</h3>
+          <h3 data-i18n="book.title">Livre vivant</h3>
           <p>Ce qu'il nous a laisse vit encore dans chacun de nous.</p>
           <div id="book-chapters" class="book-chapters"></div>
-          <button id="generate-page" class="btn btn-primary">Creer une page souvenir</button>
+          <button id="generate-page" class="btn btn-primary" data-i18n="book.generate">Creer une page souvenir</button>
           <section id="generated-page" class="generated-page" hidden></section>
         </section>
 
         <section class="qr card glass">
-          <h3>Scanner le QR code</h3>
+          <h3 data-i18n="qr.title">Scanner le QR code</h3>
           <canvas id="qr-canvas" width="180" height="180" aria-label="QR code placeholder"></canvas>
           <p id="qr-url">https://rubenzerbib.github.io/papa-2.0/</p>
         </section>
@@ -125,10 +127,10 @@
       <button id="admin-dot" class="admin-dot" aria-label="Acces admin discret"></button>
 
       <nav class="bottom-nav glass" aria-label="Navigation mobile">
-        <button class="bottom-link" data-scroll="#landing-anchor">Accueil</button>
-        <button class="bottom-link" data-scroll="#feed-anchor">Mur</button>
+        <button class="bottom-link" data-scroll="#landing-anchor" data-i18n="nav.home">Accueil</button>
+        <button class="bottom-link" data-scroll="#feed-anchor" data-i18n="nav.wall">Mur</button>
         <button class="bottom-link add" id="bottom-add">+</button>
-        <button class="bottom-link" data-scroll="#timeline-anchor">Timeline</button>
+        <button class="bottom-link" data-scroll="#timeline-anchor" data-i18n="nav.timeline">Timeline</button>
         <button class="bottom-link" id="bottom-admin">Admin</button>
       </nav>
     </div>
@@ -136,12 +138,12 @@
     <dialog id="composer-modal" class="modal" aria-label="Composer un souvenir">
       <form id="composer-form" class="modal-body" method="dialog">
         <header>
-          <h3>Raconter un souvenir</h3>
+          <h3 data-i18n="composer.title">Raconter un souvenir</h3>
           <button type="button" id="close-composer" class="icon-btn" aria-label="Fermer">✕</button>
         </header>
-        <label> Prenom <input name="contributor" type="text" placeholder="Ex: Lea" /> </label>
+        <label><span data-i18n="composer.firstname">Prenom</span><input name="contributor" type="text" placeholder="Ex: Lea" /></label>
         <label>
-          Type de souvenir
+          <span data-i18n="composer.type">Type de souvenir</span>
           <select name="type" required>
             <option value="photo">photo</option>
             <option value="video">video</option>
@@ -149,28 +151,27 @@
             <option value="text">texte</option>
           </select>
         </label>
-        <label> Texte du souvenir <textarea name="caption" rows="4" required placeholder="Racontez son souvenir..."></textarea> </label>
-        <label> Date approximative <input name="dateLabel" type="text" placeholder="Ex: Ete 1998" /> </label>
-        <label> Lieu <input name="location" type="text" placeholder="Ex: Marseille" /> </label>
-        <label> Periode <input name="period" type="text" placeholder="Enfance, Jeunesse, Mariage..." /> </label>
-        <label> Tags <input name="tags" type="text" placeholder="famille, enfance, fete, voyage, voix, heritage" /> </label>
-        <label> Fichier local <input id="composer-file" name="media" type="file" accept="image/*,video/*,audio/*" /> </label>
+        <label><span data-i18n="composer.text">Texte du souvenir</span><textarea name="caption" rows="4" required placeholder="Racontez son souvenir..."></textarea></label>
+        <label><span data-i18n="composer.date">Date approximative</span><input name="dateLabel" type="text" placeholder="Ex: Ete 1998" /></label>
+        <label><span data-i18n="composer.place">Lieu</span><input name="location" type="text" placeholder="Ex: Marseille" /></label>
+        <label><span data-i18n="composer.period">Periode</span><input name="period" type="text" placeholder="Enfance, Jeunesse, Mariage..." /></label>
+        <label><span data-i18n="composer.tags">Tags</span><input name="tags" type="text" placeholder="famille, enfance, fete, voyage, voix, heritage" /></label>
+        <label><span data-i18n="composer.localFile">Fichier local</span><input id="composer-file" name="media" type="file" accept="image/*,video/*,audio/*" /></label>
         <div id="composer-preview" class="composer-preview"></div>
         <p class="note-sync">Version actuelle : les souvenirs ajoutes sont gardes sur cet appareil. La version familiale synchronisee viendra ensuite.</p>
-        <button type="submit" class="btn btn-primary">Publier sur le mur</button>
+        <button type="submit" class="btn btn-primary" data-i18n="composer.publish">Publier sur le mur</button>
       </form>
     </dialog>
 
     <dialog id="admin-login-modal" class="modal" aria-label="Connexion admin">
       <form id="admin-login-form" class="modal-body" method="dialog">
         <header>
-          <h3>Portail admin</h3>
+          <h3 data-i18n="admin.portal">Portail admin</h3>
           <button type="button" id="close-admin-login" class="icon-btn" aria-label="Fermer">✕</button>
         </header>
-        <label> Identifiant <input name="username" type="text" required /> </label>
-        <label> Mot de passe <input name="password" type="password" required /> </label>
-        <p id="admin-login-error" class="admin-error" hidden>Identifiants invalides.</p>
-        <button type="submit" class="btn btn-primary">Se connecter</button>
+        <label><span data-i18n="admin.password">Mot de passe</span><input name="password" type="password" required /></label>
+        <p id="admin-login-error" class="admin-error" hidden data-i18n="admin.invalid">Identifiants invalides.</p>
+        <button type="submit" class="btn btn-primary" data-i18n="admin.login">Se connecter</button>
       </form>
     </dialog>
 
@@ -182,13 +183,14 @@
         </header>
 
         <section class="admin-block">
-          <h4>Landing</h4>
+          <h4 data-i18n="admin.landing">Landing</h4>
           <label>Photo principale <input id="admin-hero-photo" type="file" accept="image/*" /></label>
           <label>Nom <input id="admin-name" type="text" /></label>
           <label>Dates <input id="admin-dates" type="text" /></label>
           <label>Resume <textarea id="admin-summary" rows="2"></textarea></label>
           <label>Phrase d'accueil <textarea id="admin-welcome" rows="2"></textarea></label>
-          <label>Chemin musique <input id="admin-music-path" type="text" /></label>
+          <label><span data-i18n="admin.musicPath">Chemin musique</span><input id="admin-music-path" type="text" /></label>
+          <label><span data-i18n="admin.musicFile">Fichier musique</span><input id="admin-music-file" type="file" accept="audio/*" /></label>
           <label>Musique active <input id="admin-music-enabled" type="checkbox" /></label>
           <label>Volume musique <input id="admin-music-volume" type="range" min="0" max="1" step="0.01" /></label>
           <div class="admin-actions">
@@ -201,7 +203,7 @@
         </section>
 
         <section class="admin-block">
-          <h4>Posts</h4>
+          <h4 data-i18n="admin.posts">Posts</h4>
           <div id="admin-post-list" class="admin-list"></div>
           <form id="admin-post-form" class="admin-form">
             <input type="hidden" name="id" />
@@ -212,7 +214,7 @@
             <label>Periode <input name="period" type="text" /></label>
             <label>Tags <input name="tags" type="text" /></label>
             <label>Epingler <input name="pinned" type="checkbox" /></label>
-            <label>Visible sur le mur <input name="moderated" type="checkbox" /></label>
+            <label><span data-i18n="admin.visible">Visible sur le mur</span><input name="moderated" type="checkbox" /></label>
             <div class="admin-actions">
               <button type="submit" class="btn btn-soft">Enregistrer ce post</button>
               <button type="button" id="admin-delete-post" class="btn btn-soft danger">Supprimer ce post</button>

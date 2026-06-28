@@ -5,6 +5,8 @@ const STORAGE_KEYS = {
   saved: "papa2_saved_v3",
 };
 
+const ADMIN_PASSWORD = "Rubenz0306";
+
 const REACTIONS = ["❤️", "🕯️", "🙏", "🤍", "😂", "😢"];
 const STORIES = ["Famille", "Enfance", "Fetes", "Voyages", "Voix", "Videos", "Heritage", "Drole"];
 const FILTER_CHIPS = ["Tous", "Photos", "Videos", "Audio", "Textes", "Famille", "Enfance", "Voyages", "Fetes", "Heritage"];
@@ -25,11 +27,82 @@ const DEFAULT_CONFIG = {
   welcome: "Un mur commun, construit par ceux qui l'aiment.",
   heroPhoto: "",
   musicPath: "assets/music/background.mp3",
+  musicData: "",
   musicEnabled: true,
   musicVolume: 0.35,
+  locale: "fr",
   accentColor: "#5f84ab",
   qrUrl: "https://rubenzerbib.github.io/papa-2.0/",
   theme: "light",
+};
+
+const I18N = {
+  fr: {
+    lang: { toggle: "FR / עברית" },
+    landing: { kicker: "Bienvenue dans les souvenirs de Papa.", enter: "Entrer dans ses souvenirs", share: "Raconter un souvenir" },
+    nav: { home: "Accueil", wall: "Mur", timeline: "Timeline", moments: "Moments", book: "Livre vivant" },
+    stories: { title: "Stories" },
+    search: { placeholder: "Rechercher un souvenir, un lieu, un tag..." },
+    sort: { recent: "Plus recents", old: "Plus anciens", loved: "Les plus aimes" },
+    filters: { clear: "Effacer les filtres" },
+    timeline: { title: "Timeline vivante", subtitle: "Faites glisser pour traverser les grandes periodes de sa vie.", filter: "Voir les souvenirs de cette periode" },
+    movement: { title: "Souvenirs en mouvement", subtitle: "Une respiration visuelle qui fait vivre le mur." },
+    feed: { title: "Mur des souvenirs" },
+    book: { title: "Livre vivant", generate: "Creer une page souvenir" },
+    qr: { title: "Scanner le QR code" },
+    composer: { title: "Raconter un souvenir", firstname: "Prenom", type: "Type de souvenir", text: "Texte du souvenir", date: "Date approximative", place: "Lieu", period: "Periode", tags: "Tags", localFile: "Fichier local", publish: "Publier sur le mur" },
+    admin: { portal: "Portail admin", password: "Mot de passe", invalid: "Mot de passe invalide.", login: "Se connecter", landing: "Landing", musicPath: "Chemin musique", musicFile: "Fichier musique", posts: "Posts", visible: "Visible sur le mur" },
+  },
+  he: {
+    lang: { toggle: "עברית / FR" },
+    landing: { kicker: "ברוכים הבאים לזכרונות של אבא.", enter: "להיכנס לזכרונות", share: "לשתף זיכרון" },
+    nav: { home: "בית", wall: "קיר", timeline: "ציר זמן", moments: "רגעים", book: "ספר חי" },
+    stories: { title: "סטוריז" },
+    search: { placeholder: "חיפוש זיכרון, מקום או תגית..." },
+    sort: { recent: "החדשים ביותר", old: "הישנים ביותר", loved: "האהובים ביותר" },
+    filters: { clear: "נקה מסננים" },
+    timeline: { title: "ציר זמן חי", subtitle: "גררו כדי לעבור בין התקופות הגדולות בחייו.", filter: "הצג זכרונות מהתקופה הזו" },
+    movement: { title: "זכרונות בתנועה", subtitle: "נשימה ויזואלית שמחייה את הקיר." },
+    feed: { title: "קיר הזכרונות" },
+    book: { title: "ספר חי", generate: "צור עמוד זיכרון" },
+    qr: { title: "סרוק קוד QR" },
+    composer: { title: "שיתוף זיכרון", firstname: "שם פרטי", type: "סוג זיכרון", text: "טקסט הזיכרון", date: "תאריך משוער", place: "מקום", period: "תקופה", tags: "תגיות", localFile: "קובץ מקומי", publish: "פרסם על הקיר" },
+    admin: { portal: "פורטל ניהול", password: "סיסמה", invalid: "סיסמה שגויה.", login: "התחברות", landing: "דף פתיחה", musicPath: "נתיב מוזיקה", musicFile: "קובץ מוזיקה", posts: "פוסטים", visible: "גלוי על הקיר" },
+  },
+};
+
+const HEBREW_PERIODS = {
+  enfance: { label: "ילדות", text: "הצעדים הראשונים והחלומות הראשונים." },
+  jeunesse: { label: "נעורים", text: "בחירות, תנופה ודרכים שנפתחו." },
+  mariage: { label: "נישואין", text: "סיפור אהבה שנבנה בסבלנות." },
+  naissance: { label: "לידת הילדים", text: "בית מלא קולות וצחוק." },
+  voyages: { label: "מסעות", text: "אופקים פתוחים וחזרות יפות הביתה." },
+  famille: { label: "רגעים משפחתיים", text: "שולחנות ארוכים, תמונות מטושטשות, והעיקר." },
+  heritage: { label: "מורשת", text: "מה שהוא השאיר חי בתוכנו." },
+};
+
+const STORY_LABELS_HE = {
+  Famille: "משפחה",
+  Enfance: "ילדות",
+  Fetes: "חגים",
+  Voyages: "מסעות",
+  Voix: "קול",
+  Videos: "וידאו",
+  Heritage: "מורשת",
+  Drole: "הומור",
+};
+
+const CHIP_LABELS_HE = {
+  Tous: "הכל",
+  Photos: "תמונות",
+  Videos: "וידאו",
+  Audio: "אודיו",
+  Textes: "טקסטים",
+  Famille: "משפחה",
+  Enfance: "ילדות",
+  Voyages: "מסעות",
+  Fetes: "חגים",
+  Heritage: "מורשת",
 };
 
 const state = {
@@ -51,6 +124,7 @@ document.addEventListener("DOMContentLoaded", init);
 function init() {
   cacheEls();
   hydrateState();
+  applyLocale();
   applyTheme();
   applyConfigToUI();
   initAudio();
@@ -71,6 +145,7 @@ function init() {
 function cacheEls() {
   const ids = [
     "landing", "app", "enter-btn", "open-composer-from-landing", "music-toggle-landing", "music-toggle", "theme-toggle",
+    "language-toggle", "language-toggle-landing",
     "open-admin-top",
     "hero-photo", "hero-photo-fallback", "hero-name", "hero-dates", "hero-summary", "hero-welcome", "top-title", "app-title-click",
     "search-input", "sort-select", "filter-chips", "clear-filters", "stories-list", "timeline-range", "timeline-periods", "timeline-focus",
@@ -78,7 +153,7 @@ function cacheEls() {
     "qr-canvas", "qr-url", "composer-modal", "composer-form", "composer-file", "composer-preview", "close-composer", "fab-add", "bottom-add",
     "admin-dot", "bottom-admin", "admin-login-modal", "admin-login-form", "close-admin-login", "admin-login-error", "admin-panel-modal",
     "close-admin-panel", "admin-hero-photo", "admin-name", "admin-dates", "admin-summary", "admin-welcome", "admin-music-path", "admin-accent",
-    "admin-music-enabled", "admin-music-volume", "admin-play-music", "admin-stop-music",
+    "admin-music-file", "admin-music-enabled", "admin-music-volume", "admin-play-music", "admin-stop-music",
     "admin-qr-url", "admin-save-config", "admin-post-list", "admin-post-form", "admin-delete-post", "admin-comment-list", "export-json",
     "import-json", "reset-demo", "print-page", "bg-audio",
   ];
@@ -122,6 +197,20 @@ function bindEvents() {
     state.config.theme = state.config.theme === "dark" ? "light" : "dark";
     persistConfig();
     applyTheme();
+  });
+
+  ["language-toggle", "language-toggle-landing"].forEach((id) => {
+    els[id].addEventListener("click", () => {
+      state.config.locale = state.config.locale === "he" ? "fr" : "he";
+      persistConfig();
+      applyLocale();
+      renderAll();
+      renderMovement();
+      renderStories();
+      renderFilterChips();
+      drawQrPlaceholder();
+      if (state.admin.unlocked) renderAdminPosts();
+    });
   });
 
   els["search-input"].addEventListener("input", (e) => {
@@ -238,7 +327,7 @@ function applyConfigToUI() {
   els["hero-summary"].textContent = c.summary;
   els["hero-welcome"].textContent = c.welcome;
   els["qr-url"].textContent = c.qrUrl;
-  els["top-title"].textContent = "Ce qu'il nous a laisse vit encore dans chacun de nous.";
+  els["top-title"].textContent = state.config.locale === "he" ? "מה שהוא השאיר חי בכל אחד מאיתנו." : "Ce qu'il nous a laisse vit encore dans chacun de nous.";
 
   document.documentElement.style.setProperty("--accent", c.accentColor);
 
@@ -259,10 +348,33 @@ function applyTheme() {
   els["theme-toggle"].textContent = state.config.theme === "dark" ? "🌙" : "☀️";
 }
 
+function t(key) {
+  const lang = state.config.locale === "he" ? "he" : "fr";
+  const value = key.split(".").reduce((acc, part) => (acc ? acc[part] : undefined), I18N[lang]);
+  return typeof value === "string" ? value : key;
+}
+
+function applyLocale() {
+  const isHe = state.config.locale === "he";
+  document.documentElement.lang = isHe ? "he" : "fr";
+  document.documentElement.dir = isHe ? "rtl" : "ltr";
+  document.body.classList.toggle("rtl", isHe);
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.dataset.i18n;
+    if (key) el.textContent = t(key);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const key = el.dataset.i18nPlaceholder;
+    if (key) el.setAttribute("placeholder", t(key));
+  });
+}
+
 function initAudio() {
   const audio = els["bg-audio"];
   state.audioMissing = false;
-  audio.src = state.config.musicPath || DEFAULT_CONFIG.musicPath;
+  audio.src = state.config.musicData || state.config.musicPath || DEFAULT_CONFIG.musicPath;
   audio.volume = Number(state.config.musicVolume ?? DEFAULT_CONFIG.musicVolume);
   audio.addEventListener("error", () => {
     state.audioMissing = true;
@@ -315,7 +427,7 @@ function renderStories() {
     const active = state.filters.story === s.toLowerCase();
     return `<button class="story ${active ? "active" : ""}" data-story="${s.toLowerCase()}">
       <span class="story-ring"></span>
-      <span>${escapeHtml(s)}</span>
+      <span>${escapeHtml(state.config.locale === "he" ? (STORY_LABELS_HE[s] || s) : s)}</span>
     </button>`;
   }).join("");
 
@@ -336,7 +448,8 @@ function renderStories() {
 function renderFilterChips() {
   els["filter-chips"].innerHTML = FILTER_CHIPS.map((chip) => {
     const active = state.filters.chip === chip;
-    return `<button class="chip ${active ? "active" : ""}" data-chip="${chip}">${escapeHtml(chip)}</button>`;
+    const label = state.config.locale === "he" ? (CHIP_LABELS_HE[chip] || chip) : chip;
+    return `<button class="chip ${active ? "active" : ""}" data-chip="${chip}">${escapeHtml(label)}</button>`;
   }).join("");
 
   els["filter-chips"].querySelectorAll(".chip").forEach((btn) => {
@@ -360,14 +473,19 @@ function renderTimeline() {
 function renderTimelineFocus() {
   const idx = Number(els["timeline-range"].value || 0);
   const period = TIMELINE_PERIODS[idx];
-  els["timeline-periods"].innerHTML = TIMELINE_PERIODS.map((p, i) => `<span class="timeline-pill ${i === idx ? "active" : ""}">${escapeHtml(p.label)}</span>`).join("");
+  const periodLabel = state.config.locale === "he" ? (HEBREW_PERIODS[period.key]?.label || period.label) : period.label;
+  const periodText = state.config.locale === "he" ? (HEBREW_PERIODS[period.key]?.text || period.text) : period.text;
+  els["timeline-periods"].innerHTML = TIMELINE_PERIODS.map((p, i) => {
+    const label = state.config.locale === "he" ? (HEBREW_PERIODS[p.key]?.label || p.label) : p.label;
+    return `<span class="timeline-pill ${i === idx ? "active" : ""}">${escapeHtml(label)}</span>`;
+  }).join("");
   const samples = state.posts.filter((post) => matchPeriod(post, period.key)).slice(0, 3);
 
   els["timeline-focus"].innerHTML = `
-    <h4>${escapeHtml(period.label)}</h4>
-    <p>${escapeHtml(period.text)}</p>
+    <h4>${escapeHtml(periodLabel)}</h4>
+    <p>${escapeHtml(periodText)}</p>
     <div class="timeline-samples">
-      ${samples.length ? samples.map((s) => `<article><strong>${escapeHtml(s.dateLabel)}</strong><p>${escapeHtml(truncate(s.caption, 94))}</p></article>`).join("") : "<p>Aucun souvenir associe pour cette periode.</p>"}
+      ${samples.length ? samples.map((s) => `<article><strong>${escapeHtml(s.dateLabel)}</strong><p>${escapeHtml(truncate(s.caption, 94))}</p></article>`).join("") : `<p>${escapeHtml(state.config.locale === "he" ? "אין עדיין זיכרונות לתקופה הזו." : "Aucun souvenir associe pour cette periode.")}</p>`}
     </div>
   `;
 }
@@ -375,9 +493,9 @@ function renderTimelineFocus() {
 function renderMemoryDay() {
   if (!state.posts.length) {
     els["memory-day"].innerHTML = `
-      <h3>Souvenir du jour</h3>
-      <p>Le mur est pret a accueillir son premier souvenir.</p>
-      <button id="jump-memory" class="btn btn-soft btn-sm">Ajouter un souvenir</button>
+      <h3>${escapeHtml(state.config.locale === "he" ? "זיכרון היום" : "Souvenir du jour")}</h3>
+      <p>${escapeHtml(state.config.locale === "he" ? "הקיר מוכן לקבל את הזיכרון הראשון." : "Le mur est pret a accueillir son premier souvenir.")}</p>
+      <button id="jump-memory" class="btn btn-soft btn-sm">${escapeHtml(state.config.locale === "he" ? "להוסיף זיכרון" : "Ajouter un souvenir")}</button>
     `;
 
     document.getElementById("jump-memory").addEventListener("click", openComposer);
@@ -387,10 +505,10 @@ function renderMemoryDay() {
   const date = new Date().toISOString().slice(0, 10);
   const post = state.posts[hash(date) % state.posts.length];
   els["memory-day"].innerHTML = `
-    <h3>Souvenir du jour</h3>
+    <h3>${escapeHtml(state.config.locale === "he" ? "זיכרון היום" : "Souvenir du jour")}</h3>
     <p><strong>${escapeHtml(post.contributor)}</strong> - ${escapeHtml(post.dateLabel)}</p>
     <p>${escapeHtml(truncate(post.caption, 120))}</p>
-    <button id="jump-memory" class="btn btn-soft btn-sm">Voir ce souvenir</button>
+    <button id="jump-memory" class="btn btn-soft btn-sm">${escapeHtml(state.config.locale === "he" ? "לצפות בזיכרון" : "Voir ce souvenir")}</button>
   `;
 
   document.getElementById("jump-memory").addEventListener("click", () => {
@@ -405,11 +523,15 @@ function renderQuickStats() {
   const comments = state.posts.reduce((acc, p) => acc + p.comments.length, 0);
   const likes = state.posts.reduce((acc, p) => acc + reactionTotal(p), 0);
 
+  const labels = state.config.locale === "he"
+    ? { memories: "זכרונות", contributors: "משתתפים", places: "מקומות", interactions: "אינטראקציות" }
+    : { memories: "Souvenirs", contributors: "Contributeurs", places: "Lieux", interactions: "Interactions" };
+
   els["quick-stats"].innerHTML = `
-    <article><h4>${state.posts.length}</h4><p>Souvenirs</p></article>
-    <article><h4>${contributors}</h4><p>Contributeurs</p></article>
-    <article><h4>${locations}</h4><p>Lieux</p></article>
-    <article><h4>${comments + likes}</h4><p>Interactions</p></article>
+    <article><h4>${state.posts.length}</h4><p>${labels.memories}</p></article>
+    <article><h4>${contributors}</h4><p>${labels.contributors}</p></article>
+    <article><h4>${locations}</h4><p>${labels.places}</p></article>
+    <article><h4>${comments + likes}</h4><p>${labels.interactions}</p></article>
   `;
 }
 
@@ -452,7 +574,10 @@ function getFilteredPosts() {
 function renderFeed() {
   const posts = getFilteredPosts();
   if (!posts.length) {
-    els.feed.innerHTML = `<article class="post empty">Aucun souvenir pour l'instant. Cliquez sur + pour raconter le premier souvenir.</article>`;
+    const msg = state.config.locale === "he"
+      ? "אין עדיין זכרונות. לחצו על + כדי לשתף את הזיכרון הראשון."
+      : "Aucun souvenir pour l'instant. Cliquez sur + pour raconter le premier souvenir.";
+    els.feed.innerHTML = `<article class="post empty">${escapeHtml(msg)}</article>`;
     return;
   }
   els.feed.innerHTML = posts.map(renderPost).join("");
@@ -632,7 +757,9 @@ function renderMovement() {
       clearInterval(state.movement.timer);
       state.movement.timer = null;
     }
-    els["movement-carousel"].innerHTML = `<article class="move-card" style="--pos:0"><h4>Souvenirs en mouvement</h4><p>Ajoutez des souvenirs pour faire vivre cette section.</p></article>`;
+    const title = state.config.locale === "he" ? "זכרונות בתנועה" : "Souvenirs en mouvement";
+    const text = state.config.locale === "he" ? "הוסיפו זכרונות כדי להחיות את החלק הזה." : "Ajoutez des souvenirs pour faire vivre cette section.";
+    els["movement-carousel"].innerHTML = `<article class="move-card" style="--pos:0"><h4>${escapeHtml(title)}</h4><p>${escapeHtml(text)}</p></article>`;
     return;
   }
 
@@ -692,7 +819,8 @@ function renderBook() {
 
 function generateBookPage() {
   const picks = getFilteredPosts().slice(0, 5);
-  const dateLabel = new Date().toLocaleDateString("fr-FR", { dateStyle: "long" });
+  const localeCode = state.config.locale === "he" ? "he-IL" : "fr-FR";
+  const dateLabel = new Date().toLocaleDateString(localeCode, { dateStyle: "long" });
   els["generated-page"].hidden = false;
   els["generated-page"].innerHTML = `
     <h4>Page souvenir - ${escapeHtml(dateLabel)}</h4>
@@ -703,17 +831,16 @@ function generateBookPage() {
 }
 
 function openAdminLogin() {
-  // Local static mode: open admin panel directly for easier family access on the same device.
-  state.admin.unlocked = true;
-  openAdminPanel();
+  els["admin-login-error"].hidden = true;
+  els["admin-login-form"].reset();
+  if (!els["admin-login-modal"].open) els["admin-login-modal"].showModal();
 }
 
 function adminLogin(e) {
   e.preventDefault();
   const fd = new FormData(els["admin-login-form"]);
-  const user = String(fd.get("username") || "");
   const pass = String(fd.get("password") || "");
-  if (user !== "rubenz" || pass !== "270792") {
+  if (pass !== ADMIN_PASSWORD) {
     els["admin-login-error"].hidden = false;
     return;
   }
@@ -736,6 +863,7 @@ function fillAdminFields() {
   els["admin-summary"].value = state.config.summary;
   els["admin-welcome"].value = state.config.welcome;
   els["admin-music-path"].value = state.config.musicPath;
+  els["admin-music-file"].value = "";
   els["admin-music-enabled"].checked = Boolean(state.config.musicEnabled);
   els["admin-music-volume"].value = String(Number(state.config.musicVolume ?? DEFAULT_CONFIG.musicVolume));
   els["admin-accent"].value = toHex(state.config.accentColor);
@@ -756,6 +884,12 @@ async function saveAdminConfig() {
   const file = els["admin-hero-photo"].files?.[0];
   if (file) state.config.heroPhoto = await fileToDataUrl(file, 300000);
 
+  const musicFile = els["admin-music-file"].files?.[0];
+  if (musicFile) {
+    const dataUrl = await fileToDataUrl(musicFile, 7000000);
+    if (dataUrl) state.config.musicData = dataUrl;
+  }
+
   persistConfig();
   applyConfigToUI();
   initAudio();
@@ -770,9 +904,11 @@ async function saveAdminConfig() {
 
 function renderAdminPosts() {
   const pending = state.posts.filter((p) => p.moderated === false).length;
+  const pendingTitle = state.config.locale === "he" ? `ממתינים לאישור: ${pending}` : `En attente de moderation: ${pending}`;
+  const pendingInfo = state.config.locale === "he" ? "פרסמו או הסתירו כל זיכרון." : "Publiez ou masquez chaque souvenir.";
   els["admin-post-list"].innerHTML = `
-    <article class="admin-item"><strong>En attente de moderation: ${pending}</strong><small>Publiez ou masquez chaque souvenir.</small></article>
-    ${state.posts.map((p) => `<button class="admin-item" data-post-id="${p.id}">${escapeHtml(p.dateLabel)} - ${escapeHtml(truncate(p.caption, 46))}<small>${p.moderated === false ? "Masque du mur" : "Visible sur le mur"}</small></button>`).join("")}
+    <article class="admin-item"><strong>${escapeHtml(pendingTitle)}</strong><small>${escapeHtml(pendingInfo)}</small></article>
+    ${state.posts.map((p) => `<button class="admin-item" data-post-id="${p.id}">${escapeHtml(p.dateLabel)} - ${escapeHtml(truncate(p.caption, 46))}<small>${p.moderated === false ? (state.config.locale === "he" ? "מוסתר מהקיר" : "Masque du mur") : (state.config.locale === "he" ? "גלוי על הקיר" : "Visible sur le mur")}</small></button>`).join("")}
   `;
 
   els["admin-post-list"].querySelectorAll("[data-post-id]").forEach((btn) => {
@@ -897,10 +1033,12 @@ function importJson(e) {
         if (typeof p.moderated === "undefined") p.moderated = true;
       });
       state.config = { ...DEFAULT_CONFIG, ...(parsed.config || {}) };
+      if (!state.config.locale) state.config.locale = "fr";
       state.filters = { ...state.filters, ...(parsed.filters || {}) };
       state.saved = new Set(parsed.saved || []);
       persistAll();
       syncFilterInputs();
+      applyLocale();
       applyTheme();
       applyConfigToUI();
       initAudio();
@@ -931,6 +1069,7 @@ function resetDemo() {
   state.saved = new Set();
   persistAll();
   syncFilterInputs();
+  applyLocale();
   applyTheme();
   applyConfigToUI();
   initAudio();
