@@ -285,6 +285,7 @@ select {
   display: flex;
   align-items: center;
   gap: 0.42rem;
+  flex-wrap: wrap;
 }
 
 .desktop-nav {
@@ -850,6 +851,13 @@ input[type="password"] {
   cursor: pointer;
 }
 
+.admin-item small {
+  display: block;
+  margin-top: 0.18rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
 .admin-actions {
   display: flex;
   gap: 0.35rem;
@@ -933,6 +941,19 @@ input[type="password"] {
     grid-template-columns: 220px minmax(0, 1fr);
     gap: 0.9rem;
     padding-bottom: 1rem;
+  }
+
+  .topbar {
+    grid-column: 1 / -1;
+  }
+
+  .desktop-nav {
+    grid-column: 1;
+  }
+
+  .content {
+    grid-column: 2;
+    align-self: start;
   }
 
   .desktop-nav {

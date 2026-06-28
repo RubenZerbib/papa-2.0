@@ -26,6 +26,7 @@ const DEFAULT_CONFIG = {
   heroPhoto: "",
   musicPath: "assets/music/background.mp3",
   musicEnabled: true,
+  musicVolume: 0.35,
   accentColor: "#5f84ab",
   qrUrl: "https://rubenzerbib.github.io/papa-2.0/",
   theme: "light",
@@ -70,12 +71,14 @@ function init() {
 function cacheEls() {
   const ids = [
     "landing", "app", "enter-btn", "open-composer-from-landing", "music-toggle-landing", "music-toggle", "theme-toggle",
+    "open-admin-top",
     "hero-photo", "hero-photo-fallback", "hero-name", "hero-dates", "hero-summary", "hero-welcome", "top-title", "app-title-click",
     "search-input", "sort-select", "filter-chips", "clear-filters", "stories-list", "timeline-range", "timeline-periods", "timeline-focus",
     "timeline-filter-btn", "movement-carousel", "feed", "memory-day", "quick-stats", "book-chapters", "generate-page", "generated-page",
     "qr-canvas", "qr-url", "composer-modal", "composer-form", "composer-file", "composer-preview", "close-composer", "fab-add", "bottom-add",
     "admin-dot", "bottom-admin", "admin-login-modal", "admin-login-form", "close-admin-login", "admin-login-error", "admin-panel-modal",
     "close-admin-panel", "admin-hero-photo", "admin-name", "admin-dates", "admin-summary", "admin-welcome", "admin-music-path", "admin-accent",
+    "admin-music-enabled", "admin-music-volume", "admin-play-music", "admin-stop-music",
     "admin-qr-url", "admin-save-config", "admin-post-list", "admin-post-form", "admin-delete-post", "admin-comment-list", "export-json",
     "import-json", "reset-demo", "print-page", "bg-audio",
   ];
@@ -172,6 +175,7 @@ function bindEvents() {
 
   els["admin-dot"].addEventListener("click", openAdminLogin);
   els["bottom-admin"].addEventListener("click", openAdminLogin);
+  els["open-admin-top"].addEventListener("click", openAdminLogin);
   els["app-title-click"].addEventListener("click", () => {
     state.admin.clickCount += 1;
     if (state.admin.clickCount >= 5) {
@@ -187,6 +191,19 @@ function bindEvents() {
   els["admin-save-config"].addEventListener("click", saveAdminConfig);
   els["admin-post-form"].addEventListener("submit", saveAdminPost);
   els["admin-delete-post"].addEventListener("click", deleteAdminPost);
+  els["admin-play-music"].addEventListener("click", () => {
+    state.config.musicEnabled = true;
+    persistConfig();
+    syncMusicButtons();
+    tryStartMusic();
+  });
+  els["admin-stop-music"].addEventListener("click", () => {
+    state.config.musicEnabled = false;
+    persistConfig();
+    syncMusicButtons();
+    els["bg-audio"].pause();
+    stopSynthFallback();
+  });
 
   els["export-json"].addEventListener("click", exportJson);
   els["import-json"].addEventListener("change", importJson);
@@ -246,7 +263,7 @@ function initAudio() {
   const audio = els["bg-audio"];
   state.audioMissing = false;
   audio.src = state.config.musicPath || DEFAULT_CONFIG.musicPath;
-  audio.volume = 0.35;
+  audio.volume = Number(state.config.musicVolume ?? DEFAULT_CONFIG.musicVolume);
   audio.addEventListener("error", () => {
     state.audioMissing = true;
     console.info("Papa 2.0: fichier musique introuvable (%s)", audio.src);
@@ -289,6 +306,7 @@ function renderAll() {
   renderQuickStats();
   renderFeed();
   renderBook();
+  renderTimelineFocus();
   setupRevealAnimations();
 }
 
@@ -403,7 +421,7 @@ function getFilteredPosts() {
     Textes: ["text"],
   };
 
-  let list = [...state.posts];
+  let list = state.posts.filter((p) => p.moderated !== false);
 
   if (state.filters.search) {
     const q = state.filters.search;
@@ -595,6 +613,7 @@ async function submitComposer(e) {
     reactions: Object.fromEntries(REACTIONS.map((r) => [r, 0])),
     comments: [],
     pinned: false,
+    moderated: false,
   };
 
   state.posts.unshift(post);
@@ -717,6 +736,8 @@ function fillAdminFields() {
   els["admin-summary"].value = state.config.summary;
   els["admin-welcome"].value = state.config.welcome;
   els["admin-music-path"].value = state.config.musicPath;
+  els["admin-music-enabled"].checked = Boolean(state.config.musicEnabled);
+  els["admin-music-volume"].value = String(Number(state.config.musicVolume ?? DEFAULT_CONFIG.musicVolume));
   els["admin-accent"].value = toHex(state.config.accentColor);
   els["admin-qr-url"].value = state.config.qrUrl;
 }
@@ -727,6 +748,8 @@ async function saveAdminConfig() {
   state.config.summary = els["admin-summary"].value.trim();
   state.config.welcome = els["admin-welcome"].value.trim();
   state.config.musicPath = els["admin-music-path"].value.trim() || DEFAULT_CONFIG.musicPath;
+  state.config.musicEnabled = Boolean(els["admin-music-enabled"].checked);
+  state.config.musicVolume = Number(els["admin-music-volume"].value || DEFAULT_CONFIG.musicVolume);
   state.config.accentColor = els["admin-accent"].value;
   state.config.qrUrl = els["admin-qr-url"].value.trim() || DEFAULT_CONFIG.qrUrl;
 
@@ -736,11 +759,21 @@ async function saveAdminConfig() {
   persistConfig();
   applyConfigToUI();
   initAudio();
+  if (state.config.musicEnabled) {
+    tryStartMusic();
+  } else {
+    els["bg-audio"].pause();
+    stopSynthFallback();
+  }
   drawQrPlaceholder();
 }
 
 function renderAdminPosts() {
-  els["admin-post-list"].innerHTML = state.posts.map((p) => `<button class="admin-item" data-post-id="${p.id}">${escapeHtml(p.dateLabel)} - ${escapeHtml(truncate(p.caption, 46))}</button>`).join("");
+  const pending = state.posts.filter((p) => p.moderated === false).length;
+  els["admin-post-list"].innerHTML = `
+    <article class="admin-item"><strong>En attente de moderation: ${pending}</strong><small>Publiez ou masquez chaque souvenir.</small></article>
+    ${state.posts.map((p) => `<button class="admin-item" data-post-id="${p.id}">${escapeHtml(p.dateLabel)} - ${escapeHtml(truncate(p.caption, 46))}<small>${p.moderated === false ? "Masque du mur" : "Visible sur le mur"}</small></button>`).join("")}
+  `;
 
   els["admin-post-list"].querySelectorAll("[data-post-id]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -755,6 +788,7 @@ function renderAdminPosts() {
       f.period.value = post.period;
       f.tags.value = post.tags.join(", ");
       f.pinned.checked = post.pinned;
+      f.moderated.checked = post.moderated !== false;
     });
   });
 }
@@ -772,6 +806,7 @@ function saveAdminPost(e) {
   post.period = f.period.value.trim().toLowerCase();
   post.tags = f.tags.value.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
   post.pinned = f.pinned.checked;
+  post.moderated = f.moderated.checked;
 
   persistPosts();
   renderAll();
@@ -858,6 +893,9 @@ function importJson(e) {
       const parsed = JSON.parse(String(reader.result || "{}"));
       if (!Array.isArray(parsed.posts)) throw new Error("invalid");
       state.posts = parsed.posts;
+      state.posts.forEach((p) => {
+        if (typeof p.moderated === "undefined") p.moderated = true;
+      });
       state.config = { ...DEFAULT_CONFIG, ...(parsed.config || {}) };
       state.filters = { ...state.filters, ...(parsed.filters || {}) };
       state.saved = new Set(parsed.saved || []);

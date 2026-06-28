@@ -39,6 +39,7 @@
           <p class="subtext">Chaque souvenir ajoute ici prolonge son histoire.</p>
         </div>
         <div class="top-actions">
+          <button id="open-admin-top" class="btn btn-soft btn-sm" aria-label="Ouvrir l'espace admin">Admin</button>
           <button id="music-toggle" class="icon-btn" aria-label="Activer ou couper la musique">🔊</button>
           <button id="theme-toggle" class="icon-btn" aria-label="Changer de thème">☀️</button>
         </div>
@@ -188,6 +189,12 @@
           <label>Resume <textarea id="admin-summary" rows="2"></textarea></label>
           <label>Phrase d'accueil <textarea id="admin-welcome" rows="2"></textarea></label>
           <label>Chemin musique <input id="admin-music-path" type="text" /></label>
+          <label>Musique active <input id="admin-music-enabled" type="checkbox" /></label>
+          <label>Volume musique <input id="admin-music-volume" type="range" min="0" max="1" step="0.01" /></label>
+          <div class="admin-actions">
+            <button id="admin-play-music" class="btn btn-soft btn-sm" type="button">Lecture test</button>
+            <button id="admin-stop-music" class="btn btn-soft btn-sm" type="button">Stop test</button>
+          </div>
           <label>Couleur principale <input id="admin-accent" type="color" /></label>
           <label>URL QR officielle <input id="admin-qr-url" type="text" /></label>
           <button id="admin-save-config" class="btn btn-primary">Enregistrer la configuration</button>
@@ -205,6 +212,7 @@
             <label>Periode <input name="period" type="text" /></label>
             <label>Tags <input name="tags" type="text" /></label>
             <label>Epingler <input name="pinned" type="checkbox" /></label>
+            <label>Visible sur le mur <input name="moderated" type="checkbox" /></label>
             <div class="admin-actions">
               <button type="submit" class="btn btn-soft">Enregistrer ce post</button>
               <button type="button" id="admin-delete-post" class="btn btn-soft danger">Supprimer ce post</button>
