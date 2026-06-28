@@ -20,7 +20,7 @@ const TIMELINE_PERIODS = [
 
 const DEFAULT_CONFIG = {
   name: "Papa",
-  dates: "1956 - 2023",
+  dates: "19 mars 1955 - 13 decembre 2022",
   summary: "Une vie de transmission, de douceur et de force.",
   welcome: "Un mur commun, construit par ceux qui l'aiment.",
   heroPhoto: "",
@@ -38,6 +38,9 @@ const state = {
   saved: new Set(),
   admin: { unlocked: false, clickCount: 0 },
   movement: { idx: 0, paused: false, timer: null },
+  audioMissing: false,
+  synth: { ctx: null, nodes: [] },
+  revealObserver: null,
 };
 
 const els = {};
@@ -83,8 +86,18 @@ function cacheEls() {
 }
 
 function hydrateState() {
-  state.posts = loadJson(STORAGE_KEYS.posts) || demoPosts();
+  const loadedPosts = loadJson(STORAGE_KEYS.posts);
+  state.posts = Array.isArray(loadedPosts) ? loadedPosts : demoPosts();
+
+  // If prior default demo data is still present, clear it to start from a real empty memorial wall.
+  if (looksLikeLegacyDemo(state.posts)) {
+    state.posts = [];
+  }
+
   state.config = { ...DEFAULT_CONFIG, ...(loadJson(STORAGE_KEYS.config) || {}) };
+  if (state.config.dates === "1956 - 2023") {
+    state.config.dates = DEFAULT_CONFIG.dates;
+  }
   state.filters = { ...state.filters, ...(loadJson(STORAGE_KEYS.filters) || {}) };
   state.saved = new Set(loadJson(STORAGE_KEYS.saved) || []);
   persistAll();
@@ -231,9 +244,11 @@ function applyTheme() {
 
 function initAudio() {
   const audio = els["bg-audio"];
+  state.audioMissing = false;
   audio.src = state.config.musicPath || DEFAULT_CONFIG.musicPath;
   audio.volume = 0.35;
   audio.addEventListener("error", () => {
+    state.audioMissing = true;
     console.info("Papa 2.0: fichier musique introuvable (%s)", audio.src);
   });
 }
@@ -242,8 +257,12 @@ function toggleMusic() {
   state.config.musicEnabled = !state.config.musicEnabled;
   persistConfig();
   syncMusicButtons();
-  if (state.config.musicEnabled) tryStartMusic();
-  else els["bg-audio"].pause();
+  if (state.config.musicEnabled) {
+    tryStartMusic();
+  } else {
+    els["bg-audio"].pause();
+    stopSynthFallback();
+  }
 }
 
 function syncMusicButtons() {
@@ -254,7 +273,15 @@ function syncMusicButtons() {
 
 function tryStartMusic() {
   if (!state.config.musicEnabled) return;
-  els["bg-audio"].play().catch(() => {});
+
+  if (state.audioMissing) {
+    startSynthFallback();
+    return;
+  }
+
+  els["bg-audio"].play().catch(() => {
+    // Keep silent until a valid user gesture or fallback if file is missing.
+  });
 }
 
 function renderAll() {
@@ -262,6 +289,7 @@ function renderAll() {
   renderQuickStats();
   renderFeed();
   renderBook();
+  setupRevealAnimations();
 }
 
 function renderStories() {
@@ -327,6 +355,17 @@ function renderTimelineFocus() {
 }
 
 function renderMemoryDay() {
+  if (!state.posts.length) {
+    els["memory-day"].innerHTML = `
+      <h3>Souvenir du jour</h3>
+      <p>Le mur est pret a accueillir son premier souvenir.</p>
+      <button id="jump-memory" class="btn btn-soft btn-sm">Ajouter un souvenir</button>
+    `;
+
+    document.getElementById("jump-memory").addEventListener("click", openComposer);
+    return;
+  }
+
   const date = new Date().toISOString().slice(0, 10);
   const post = state.posts[hash(date) % state.posts.length];
   els["memory-day"].innerHTML = `
@@ -395,11 +434,12 @@ function getFilteredPosts() {
 function renderFeed() {
   const posts = getFilteredPosts();
   if (!posts.length) {
-    els.feed.innerHTML = `<article class="post empty">Aucun souvenir ne correspond a votre recherche.</article>`;
+    els.feed.innerHTML = `<article class="post empty">Aucun souvenir pour l'instant. Cliquez sur + pour raconter le premier souvenir.</article>`;
     return;
   }
   els.feed.innerHTML = posts.map(renderPost).join("");
   posts.forEach(bindPostEvents);
+  setupRevealAnimations();
 }
 
 function renderPost(post) {
@@ -568,7 +608,14 @@ async function submitComposer(e) {
 
 function renderMovement() {
   const items = state.posts.slice(0, 8);
-  if (!items.length) return;
+  if (!items.length) {
+    if (state.movement.timer) {
+      clearInterval(state.movement.timer);
+      state.movement.timer = null;
+    }
+    els["movement-carousel"].innerHTML = `<article class="move-card" style="--pos:0"><h4>Souvenirs en mouvement</h4><p>Ajoutez des souvenirs pour faire vivre cette section.</p></article>`;
+    return;
+  }
 
   paintMovement(items);
   if (state.movement.timer) clearInterval(state.movement.timer);
@@ -637,8 +684,9 @@ function generateBookPage() {
 }
 
 function openAdminLogin() {
-  els["admin-login-error"].hidden = true;
-  if (!els["admin-login-modal"].open) els["admin-login-modal"].showModal();
+  // Local static mode: open admin panel directly for easier family access on the same device.
+  state.admin.unlocked = true;
+  openAdminPanel();
 }
 
 function adminLogin(e) {
@@ -839,7 +887,7 @@ function importJson(e) {
 }
 
 function resetDemo() {
-  state.posts = demoPosts();
+  state.posts = [];
   state.config = { ...DEFAULT_CONFIG };
   state.filters = { search: "", chip: "Tous", story: "", sort: "recent", period: "" };
   state.saved = new Set();
@@ -1013,27 +1061,73 @@ function escapeAttr(v) {
 }
 
 function demoPosts() {
-  const make = (i, input) => ({
-    id: `p${i}`,
-    avatar: "",
-    reactions: { "❤️": 8 + i, "🕯️": 2 + (i % 4), "🙏": 4 + (i % 3), "🤍": 2 + (i % 2), "😂": i % 5, "😢": 1 + (i % 3) },
-    comments: [],
-    pinned: i === 10 || i === 12,
-    ...input,
-  });
+  return [];
+}
 
-  return [
-    make(1, { contributor: "Lina", type: "photo", caption: "Photo de famille autour de la table. Son regard disait: prenez le temps d'etre ensemble.", dateLabel: "Printemps 1994", createdAt: "1994-04-12T10:00:00Z", location: "Lyon", period: "enfance", tags: ["famille", "enfance"], media: [{ type: "photo", title: "Table du dimanche", url: "", placeholder: true }] }),
-    make(2, { contributor: "Samir", type: "text", caption: "Souvenir drole: il cachait les desserts pour les invites, puis oubliait ou.", dateLabel: "Hiver 2001", createdAt: "2001-12-09T11:00:00Z", location: "Grenoble", period: "famille", tags: ["drole", "fetes"], media: [{ type: "text", title: "Anecdote", url: "", placeholder: true }] }),
-    make(3, { contributor: "Ines", type: "photo", caption: "Voyage en bord de mer. Il ramassait les coquillages comme des tresors.", dateLabel: "Ete 1998", createdAt: "1998-08-18T09:00:00Z", location: "Sete", period: "voyages", tags: ["voyages", "famille"], media: [{ type: "photo", title: "Coquillages", url: "", placeholder: true }] }),
-    make(4, { contributor: "Nadia", type: "photo", caption: "Fete familiale. Les bougies, les voix, et sa facon de remercier chacun.", dateLabel: "Juin 2012", createdAt: "2012-06-15T20:00:00Z", location: "Montpellier", period: "famille", tags: ["fetes", "famille"], media: [{ type: "photo", title: "Fete familiale", url: "", placeholder: true }] }),
-    make(5, { contributor: "Karim", type: "audio", caption: "Message vocal retrouve: \"Rentrez bien, je vous attends.\"", dateLabel: "2006", createdAt: "2006-10-11T08:00:00Z", location: "Paris", period: "famille", tags: ["voix", "heritage"], media: [{ type: "audio", title: "Voix du soir", url: "", placeholder: true }] }),
-    make(6, { contributor: "Famille", type: "video", caption: "Ancienne video numerisee: il nous apprend a faire du velo avec une patience infinie.", dateLabel: "Ete 1991", createdAt: "1991-07-15T18:00:00Z", location: "Valence", period: "enfance", tags: ["videos", "enfance"], media: [{ type: "video", title: "Lecon de velo", url: "", placeholder: true }] }),
-    make(7, { contributor: "Lea", type: "text", caption: "Sa recette de poivrons farcis: gouter, corriger, rire, recommencer.", dateLabel: "Mai 2011", createdAt: "2011-05-02T09:00:00Z", location: "Lyon", period: "famille", tags: ["cuisine", "famille"], media: [{ type: "text", title: "Recette", url: "", placeholder: true }] }),
-    make(8, { contributor: "Maya", type: "text", caption: "Sa valeur transmise: la douceur n'est pas une faiblesse, c'est une force.", dateLabel: "Transmission", createdAt: "2015-03-03T13:00:00Z", location: "Lyon", period: "heritage", tags: ["heritage", "valeurs"], media: [{ type: "text", title: "Valeur", url: "", placeholder: true }] }),
-    make(9, { contributor: "Rami", type: "photo", caption: "Lettre retrouvee dans un vieux livre. Une ecriture qui rassure encore.", dateLabel: "1987", createdAt: "1987-11-21T10:00:00Z", location: "Oran", period: "jeunesse", tags: ["heritage", "lettre"], media: [{ type: "photo", title: "Lettre", url: "", placeholder: true }] }),
-    make(10, { contributor: "Nora", type: "text", caption: "Mon souvenir d'enfant: ses grandes mains reparaient les jouets et les coeurs.", dateLabel: "1996", createdAt: "1996-02-14T16:00:00Z", location: "Lyon", period: "enfance", tags: ["enfance", "famille"], media: [{ type: "text", title: "Souvenir d'enfant", url: "", placeholder: true }] }),
-    make(11, { contributor: "Famille", type: "photo", caption: "Post anniversaire: une bougie pour ce qui continue de vivre grace a lui.", dateLabel: "Date anniversaire", createdAt: "2025-06-18T08:00:00Z", location: "Maison familiale", period: "heritage", tags: ["fetes", "souvenir", "famille"], media: [{ type: "photo", title: "Bougie", url: "", placeholder: true }] }),
-    make(12, { contributor: "Famille", type: "text", caption: "Ce qu'il nous a laisse: la facon d'accueillir, de transmettre et de tenir ensemble.", dateLabel: "Aujourd'hui", createdAt: "2026-01-08T09:30:00Z", location: "Partout avec nous", period: "heritage", tags: ["heritage", "valeurs", "famille"], media: [{ type: "text", title: "Ce qu'il nous a laisse", url: "", placeholder: true }] }),
-  ];
+function looksLikeLegacyDemo(posts) {
+  if (!Array.isArray(posts) || posts.length < 8) return false;
+  const ids = new Set(posts.map((p) => p.id));
+  return ["p1", "p2", "p3", "p4", "p5", "p6"].every((id) => ids.has(id));
+}
+
+function setupRevealAnimations() {
+  if (typeof window.IntersectionObserver === "undefined") return;
+
+  if (!state.revealObserver) {
+    state.revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            state.revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+  }
+
+  document.querySelectorAll(".card, .post, .feed-wrap, .timeline-living, .movement").forEach((el) => {
+    if (!el.classList.contains("reveal")) el.classList.add("reveal");
+    if (!el.classList.contains("is-visible")) state.revealObserver.observe(el);
+  });
+}
+
+function startSynthFallback() {
+  if (state.synth.ctx) return;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+
+    const freqs = [220, 277.18, 329.63];
+    const nodes = freqs.map((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.value = 0.012 + idx * 0.004;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      return { osc, gain };
+    });
+
+    state.synth = { ctx, nodes };
+  } catch {
+    // Ignore fallback audio errors silently.
+  }
+}
+
+function stopSynthFallback() {
+  if (!state.synth.ctx) return;
+  state.synth.nodes.forEach(({ osc }) => {
+    try {
+      osc.stop();
+    } catch {
+      // no-op
+    }
+  });
+  state.synth.ctx.close().catch(() => {});
+  state.synth = { ctx: null, nodes: [] };
 }
