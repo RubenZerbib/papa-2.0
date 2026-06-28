@@ -248,6 +248,40 @@ select {
   gap: 0.8rem;
 }
 
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 0.55rem 0.55rem 6.6rem;
+    gap: 0.62rem;
+  }
+
+  .topbar {
+    top: 0.3rem;
+    padding: 0.62rem;
+  }
+
+  .topbar h2 {
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .card {
+    padding: 0.74rem;
+  }
+
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .modal {
+    width: 100%;
+    max-height: 96dvh;
+  }
+
+  .memory-modal-body {
+    max-height: 82dvh;
+  }
+}
+
 .topbar {
   position: sticky;
   top: 0.55rem;

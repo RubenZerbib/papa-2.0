@@ -1,0 +1,11 @@
+{
+  "name": "Papa 2.0",
+  "short_name": "Papa 2.0",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#edf2f7",
+  "theme_color": "#5f84ab",
+  "lang": "fr",
+  "description": "Mur memorial familial Papa 2.0",
+  "icons": []
+}

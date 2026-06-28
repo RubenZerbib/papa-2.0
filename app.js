@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
 
 const ADMIN_PASSWORD = "Rubenz0306";
 const MAX_MUSIC_UPLOAD_BYTES = 1200000;
+const GIST_API = "https://api.github.com/gists";
 
 const REACTIONS = ["❤️", "🕯️", "🙏", "🤍", "😂", "😢"];
 const STORIES = ["Famille", "Enfance", "Fetes", "Voyages", "Voix", "Videos", "Heritage", "Drole"];
@@ -31,6 +32,12 @@ const DEFAULT_CONFIG = {
   musicData: "",
   musicEnabled: true,
   musicVolume: 0.35,
+  syncEnabled: false,
+  syncAuto: true,
+  syncGistId: "",
+  syncToken: "",
+  syncFilename: "papa2-data.json",
+  syncLastAt: "",
   locale: "fr",
   accentColor: "#5f84ab",
   qrUrl: "https://rubenzerbib.github.io/papa-2.0/",
@@ -116,6 +123,7 @@ const state = {
   audioMissing: false,
   synth: { ctx: null, nodes: [] },
   revealObserver: null,
+  sync: { timer: null, applyingRemote: false },
 };
 
 const els = {};
@@ -131,6 +139,7 @@ function init() {
   initAudio();
   bindEvents();
   updateStickyOffsets();
+  registerServiceWorker();
   showSkeletons();
 
   setTimeout(() => {
@@ -142,6 +151,9 @@ function init() {
     drawQrPlaceholder();
     jumpFromHash();
     updateStickyOffsets();
+    if (state.config.syncEnabled && state.config.syncGistId) {
+      syncPullFromCloud({ silent: true });
+    }
   }, 220);
 }
 
@@ -158,7 +170,7 @@ function cacheEls() {
     "close-admin-panel", "admin-hero-photo", "admin-name", "admin-dates", "admin-summary", "admin-welcome", "admin-music-path", "admin-accent",
     "admin-music-file", "admin-music-enabled", "admin-music-volume", "admin-play-music", "admin-stop-music",
     "admin-qr-url", "admin-save-config", "admin-post-list", "admin-post-form", "admin-delete-post", "admin-comment-list", "export-json",
-    "import-json", "reset-demo", "print-page", "bg-audio",
+    "import-json", "reset-demo", "print-page", "admin-sync-enabled", "admin-sync-auto", "admin-sync-gist-id", "admin-sync-token", "admin-sync-filename", "admin-sync-status", "admin-sync-pull", "admin-sync-push", "bg-audio",
   ];
 
   ids.forEach((id) => {
@@ -299,6 +311,12 @@ function bindEvents() {
     syncMusicButtons();
     els["bg-audio"].pause();
     stopSynthFallback();
+  });
+  els["admin-sync-pull"].addEventListener("click", () => {
+    syncPullFromCloud({ silent: false });
+  });
+  els["admin-sync-push"].addEventListener("click", () => {
+    syncPushToCloud({ silent: false });
   });
 
   els["export-json"].addEventListener("click", exportJson);
@@ -1018,6 +1036,12 @@ function fillAdminFields() {
   els["admin-music-volume"].value = String(Number(state.config.musicVolume ?? DEFAULT_CONFIG.musicVolume));
   els["admin-accent"].value = toHex(state.config.accentColor);
   els["admin-qr-url"].value = state.config.qrUrl;
+  els["admin-sync-enabled"].checked = Boolean(state.config.syncEnabled);
+  els["admin-sync-auto"].checked = Boolean(state.config.syncAuto);
+  els["admin-sync-gist-id"].value = state.config.syncGistId || "";
+  els["admin-sync-token"].value = state.config.syncToken || "";
+  els["admin-sync-filename"].value = state.config.syncFilename || DEFAULT_CONFIG.syncFilename;
+  updateSyncStatus();
 }
 
 async function saveAdminConfig() {
@@ -1032,6 +1056,11 @@ async function saveAdminConfig() {
   state.config.musicVolume = Number(els["admin-music-volume"].value || DEFAULT_CONFIG.musicVolume);
   state.config.accentColor = els["admin-accent"].value;
   state.config.qrUrl = els["admin-qr-url"].value.trim() || DEFAULT_CONFIG.qrUrl;
+  state.config.syncEnabled = Boolean(els["admin-sync-enabled"].checked);
+  state.config.syncAuto = Boolean(els["admin-sync-auto"].checked);
+  state.config.syncGistId = els["admin-sync-gist-id"].value.trim();
+  state.config.syncToken = els["admin-sync-token"].value.trim();
+  state.config.syncFilename = els["admin-sync-filename"].value.trim() || DEFAULT_CONFIG.syncFilename;
 
   const file = els["admin-hero-photo"].files?.[0];
   if (file) state.config.heroPhoto = await fileToDataUrl(file, 300000);
@@ -1062,6 +1091,7 @@ async function saveAdminConfig() {
 
   applyConfigToUI();
   initAudio();
+  updateSyncStatus();
   if (state.config.musicEnabled) {
     tryStartMusic();
   } else {
@@ -1282,6 +1312,161 @@ function updateStickyOffsets() {
   document.documentElement.style.setProperty("--topbar-offset", `${offset}px`);
 }
 
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register("./sw.js").catch(() => {
+    // Ignore registration errors to keep app usable.
+  });
+}
+
+function queueAutoSync() {
+  if (!state.config.syncEnabled || !state.config.syncAuto || !state.config.syncGistId) return;
+  if (state.sync.applyingRemote) return;
+  if (state.sync.timer) clearTimeout(state.sync.timer);
+  state.sync.timer = setTimeout(() => {
+    syncPushToCloud({ silent: true });
+  }, 1400);
+}
+
+function buildCloudPayload() {
+  return {
+    exportedAt: new Date().toISOString(),
+    config: { ...state.config, syncToken: "" },
+    posts: state.posts,
+    filters: state.filters,
+    saved: Array.from(state.saved),
+  };
+}
+
+function syncHeaders(withToken = true) {
+  const headers = { "Content-Type": "application/json" };
+  if (withToken && state.config.syncToken) {
+    headers.Authorization = `Bearer ${state.config.syncToken}`;
+  }
+  return headers;
+}
+
+function updateSyncStatus(message = "") {
+  if (!els["admin-sync-status"]) return;
+  if (message) {
+    els["admin-sync-status"].textContent = message;
+    return;
+  }
+  if (!state.config.syncEnabled) {
+    els["admin-sync-status"].textContent = "Sync distante desactivee.";
+    return;
+  }
+  if (!state.config.syncGistId) {
+    els["admin-sync-status"].textContent = "Renseignez un ID Gist pour activer la sync.";
+    return;
+  }
+  if (state.config.syncLastAt) {
+    els["admin-sync-status"].textContent = `Derniere sync: ${new Date(state.config.syncLastAt).toLocaleString("fr-FR")}`;
+    return;
+  }
+  els["admin-sync-status"].textContent = "Pret pour synchroniser.";
+}
+
+async function syncPullFromCloud({ silent }) {
+  if (!state.config.syncEnabled || !state.config.syncGistId) {
+    if (!silent) window.alert("Configurez la sync cloud dans l'admin.");
+    return;
+  }
+
+  try {
+    updateSyncStatus("Recuperation des posts en cours...");
+    const resp = await fetch(`${GIST_API}/${encodeURIComponent(state.config.syncGistId)}`, {
+      headers: syncHeaders(false),
+    });
+    if (!resp.ok) throw new Error("pull_failed");
+    const gist = await resp.json();
+    const filename = state.config.syncFilename || DEFAULT_CONFIG.syncFilename;
+    const fileEntry = gist.files?.[filename] || Object.values(gist.files || {}).find((f) => f?.filename?.endsWith(".json"));
+    if (!fileEntry?.content) throw new Error("file_missing");
+    const parsed = JSON.parse(fileEntry.content);
+    if (!Array.isArray(parsed.posts)) throw new Error("invalid");
+
+    state.sync.applyingRemote = true;
+    state.posts = parsed.posts;
+    state.posts.forEach((p) => {
+      if (typeof p.moderated === "undefined") p.moderated = true;
+    });
+    state.filters = { ...state.filters, ...(parsed.filters || {}) };
+    state.saved = new Set(parsed.saved || []);
+    const keptToken = state.config.syncToken;
+    const keptGistId = state.config.syncGistId;
+    const keptEnabled = state.config.syncEnabled;
+    const keptFilename = filename;
+    state.config = { ...DEFAULT_CONFIG, ...(parsed.config || {}) };
+    state.config.syncToken = keptToken;
+    state.config.syncGistId = keptGistId;
+    state.config.syncEnabled = keptEnabled;
+    state.config.syncFilename = keptFilename;
+    state.config.syncLastAt = new Date().toISOString();
+
+    persistAll();
+    syncFilterInputs();
+    applyLocale();
+    applyTheme();
+    applyConfigToUI();
+    initAudio();
+    renderStories();
+    renderFilterChips();
+    renderTimelineFocus();
+    renderAll();
+    renderMovement();
+    if (state.admin.unlocked) {
+      fillAdminFields();
+      renderAdminPosts();
+      renderAdminComments();
+    }
+    updateSyncStatus();
+    if (!silent) window.alert("Synchronisation recue depuis le cloud.");
+  } catch {
+    updateSyncStatus("Echec de recuperation cloud.");
+    if (!silent) window.alert("Impossible de recuperer les posts cloud.");
+  } finally {
+    state.sync.applyingRemote = false;
+  }
+}
+
+async function syncPushToCloud({ silent }) {
+  if (!state.config.syncEnabled || !state.config.syncGistId) {
+    if (!silent) window.alert("Configurez la sync cloud dans l'admin.");
+    return;
+  }
+  if (!state.config.syncToken) {
+    if (!silent) window.alert("Ajoutez un token GitHub (scope gist) pour envoyer.");
+    return;
+  }
+
+  try {
+    updateSyncStatus("Envoi des posts vers le cloud...");
+    const filename = state.config.syncFilename || DEFAULT_CONFIG.syncFilename;
+    const payload = buildCloudPayload();
+    const resp = await fetch(`${GIST_API}/${encodeURIComponent(state.config.syncGistId)}`, {
+      method: "PATCH",
+      headers: syncHeaders(true),
+      body: JSON.stringify({
+        files: {
+          [filename]: {
+            content: JSON.stringify(payload, null, 2),
+          },
+        },
+      }),
+    });
+    if (!resp.ok) throw new Error("push_failed");
+
+    state.config.syncLastAt = new Date().toISOString();
+    persistConfig();
+    updateSyncStatus();
+    if (!silent) window.alert("Synchronisation envoyee vers le cloud.");
+  } catch {
+    updateSyncStatus("Echec d'envoi cloud.");
+    if (!silent) window.alert("Impossible d'envoyer les posts vers le cloud.");
+  }
+}
+
 function drawFinder(ctx, x, y, s) {
   ctx.fillRect(x, y, s * 3, s * 3);
   ctx.fillStyle = "#fff";
@@ -1333,6 +1518,7 @@ function persistAll() {
 
 function persistPosts() {
   localStorage.setItem(STORAGE_KEYS.posts, JSON.stringify(state.posts));
+  queueAutoSync();
 }
 
 function persistConfig() {
