@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="Papa 2.0 - Mur collectif de souvenirs." />
+		<title>Papa 2.0</title>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<div id="ambient-bg" aria-hidden="true"></div>
+
+		<section id="landing" class="landing active" aria-label="Page d'accueil">
+			<div class="landing__glass">
+				<div class="portrait-placeholder" aria-hidden="true">Papa</div>
+				<h1>Papa</h1>
+				<p class="dates">1956 - 2023</p>
+				<p class="landing__subtext">Un mur commun, construit par ceux qui l'aiment.</p>
+				<div class="landing__actions">
+					<button id="enter-btn" class="btn btn-primary">Entrer dans ses souvenirs</button>
+					<button id="open-composer-from-landing" class="btn btn-soft">Raconter un souvenir</button>
+				</div>
+			</div>
+		</section>
+
+		<div id="app" class="app-shell" hidden>
+			<header class="topbar">
+				<div>
+					<p class="eyebrow">Papa 2.0</p>
+					<h2>Ce mur appartient à la famille.</h2>
+					<p class="microcopy">Ici, chacun peut déposer un morceau de son histoire.</p>
+				</div>
+				<div class="topbar-actions">
+					<button id="theme-toggle" class="icon-btn" aria-label="Basculer le thème">☀️</button>
+				</div>
+			</header>
+
+			<aside class="sidebar-nav" aria-label="Navigation principale">
+				<button class="nav-item active" data-view="feed">Mur</button>
+				<button class="nav-item" data-view="timeline">Moments</button>
+				<button class="nav-item" data-view="book">Livre vivant</button>
+				<button class="nav-item" data-view="places">Lieux</button>
+				<button class="nav-item" data-view="tools">Outils</button>
+			</aside>
+
+			<main class="content">
+				<section class="memory-day card" id="memory-day"></section>
+
+				<section class="stories card" aria-label="Collections de souvenirs">
+					<h3>Collections</h3>
+					<div id="stories-list" class="stories-list"></div>
+				</section>
+
+				<section class="controls card" aria-label="Recherche et filtres">
+					<div class="search-row">
+						<input
+							id="search-input"
+							type="search"
+							placeholder="Rechercher un souvenir, un lieu, un prénom, un tag..."
+							aria-label="Rechercher"
+						/>
+						<select id="sort-select" aria-label="Trier les souvenirs">
+							<option value="recent">Plus récents</option>
+							<option value="old">Plus anciens</option>
+							<option value="loved">Les plus aimés</option>
+						</select>
+					</div>
+					<div id="filter-chips" class="chips"></div>
+					<button id="clear-filters" class="btn btn-soft btn-sm">Effacer les filtres</button>
+				</section>
+
+				<section id="feed-view" data-view-panel="feed">
+					<section class="anniversary card">
+						<h3>Moments de commémoration</h3>
+						<div class="anniversary-grid">
+							<article>
+								<h4>Son anniversaire</h4>
+								<p>Un espace pour faire remonter les souvenirs lumineux à cette date.</p>
+							</article>
+							<article>
+								<h4>Date de souvenir</h4>
+								<p>Le mur pourra proposer automatiquement des souvenirs liés à cette période.</p>
+							</article>
+							<article>
+								<h4>Fêtes familiales</h4>
+								<p>Préparer des moments partagés autour d'images et de voix.</p>
+							</article>
+						</div>
+						<div class="sample-remembrance" id="sample-remembrance"></div>
+					</section>
+
+					<section id="feed" class="feed" aria-live="polite"></section>
+				</section>
+
+				<section id="timeline-view" data-view-panel="timeline" hidden>
+					<article class="card">
+						<h3>La ligne de vie</h3>
+						<div id="timeline-events" class="timeline"></div>
+					</article>
+				</section>
+
+				<section id="book-view" data-view-panel="book" hidden>
+					<article class="card">
+						<h3>Livre vivant</h3>
+						<p>Un souvenir n'a pas besoin d'être parfait pour être précieux.</p>
+						<div id="book-chapters" class="book-chapters"></div>
+						<button id="generate-page" class="btn btn-primary">Générer une page souvenir</button>
+						<section id="generated-page" class="generated-page" hidden></section>
+					</article>
+				</section>
+
+				<section id="places-view" data-view-panel="places" hidden>
+					<article class="card map-card">
+						<h3>Les lieux de sa vie</h3>
+						<div id="places-grid" class="places-grid"></div>
+					</article>
+				</section>
+
+				<section id="tools-view" data-view-panel="tools" hidden>
+					<article class="card tools-card">
+						<h3>Outils locaux</h3>
+						<p>
+							Version actuelle: les souvenirs ajoutés sont gardés sur cet appareil. La version
+							familiale synchronisée viendra ensuite.
+						</p>
+						<div class="tools-grid">
+							<button id="export-json" class="btn btn-soft">Exporter les souvenirs (JSON)</button>
+							<label class="btn btn-soft file-label" for="import-json">Importer les souvenirs (JSON)</label>
+							<input id="import-json" type="file" accept="application/json" hidden />
+							<button id="reset-demo" class="btn btn-soft">Réinitialiser les données</button>
+							<button id="print-page" class="btn btn-soft">Imprimer / Sauvegarder la page</button>
+						</div>
+						<div class="qr-placeholder">
+							<canvas id="qr-canvas" width="180" height="180" aria-label="QR placeholder"></canvas>
+							<p>https://rubenzerbib.github.io/papa-2.0/</p>
+							<small>QR visuel local (placeholder). Un QR réel peut être ajouté ensuite.</small>
+						</div>
+					</article>
+				</section>
+			</main>
+
+			<button id="fab-add" class="fab" aria-label="Ajouter un souvenir">+</button>
+
+			<nav class="bottom-nav" aria-label="Navigation mobile">
+				<button class="bottom-nav-item active" data-view="feed">Mur</button>
+				<button class="bottom-nav-item" data-view="timeline">Moments</button>
+				<button class="bottom-nav-item add" id="bottom-add">+</button>
+				<button class="bottom-nav-item" data-view="book">Livre</button>
+				<button class="bottom-nav-item" data-view="places">Lieux</button>
+			</nav>
+		</div>
+
+		<dialog id="composer-modal" class="composer" aria-label="Ajouter un souvenir">
+			<form id="composer-form" method="dialog">
+				<header>
+					<h3>Raconter un souvenir</h3>
+					<button type="button" id="close-composer" class="icon-btn" aria-label="Fermer">✕</button>
+				</header>
+				<label>
+					Prénom facultatif
+					<input name="contributor" type="text" placeholder="Ex: Léa" />
+				</label>
+				<label>
+					Type de souvenir
+					<select name="type" required>
+						<option value="photo">photo</option>
+						<option value="video">vidéo</option>
+						<option value="audio">audio</option>
+						<option value="text">texte</option>
+						<option value="histoire">histoire</option>
+						<option value="lieu">lieu</option>
+					</select>
+				</label>
+				<label>
+					Texte / anecdote
+					<textarea name="caption" rows="4" required placeholder="Racontez un moment..." ></textarea>
+				</label>
+				<label>
+					Date approximative
+					<input name="dateLabel" type="text" placeholder="Ex: Été 1998" />
+				</label>
+				<label>
+					Lieu
+					<input name="location" type="text" placeholder="Ex: Marseille" />
+				</label>
+				<label>
+					Tags / moment
+					<input name="tags" type="text" placeholder="famille, vacances, cuisine" />
+				</label>
+
+				<label>
+					Upload photo (local)
+					<input name="photo" type="file" accept="image/*" />
+				</label>
+				<label>
+					Upload vidéo (local)
+					<input name="video" type="file" accept="video/*" />
+				</label>
+				<label>
+					Upload audio (local)
+					<input name="audio" type="file" accept="audio/*" />
+				</label>
+
+				<p class="note-sync">
+					Version actuelle: les souvenirs ajoutés sont gardés sur cet appareil. La version
+					familiale synchronisée viendra ensuite.
+				</p>
+
+				<div class="composer-actions">
+					<button type="submit" class="btn btn-primary">Publier sur le mur</button>
+				</div>
+			</form>
+		</dialog>
+
+		<template id="skeleton-template">
+			<article class="post skeleton">
+				<div class="skeleton-line lg"></div>
+				<div class="skeleton-box"></div>
+				<div class="skeleton-line"></div>
+				<div class="skeleton-line sm"></div>
+			</article>
+		</template>
+
+		<script src="app.js"></script>
+	</body>
+</html>
